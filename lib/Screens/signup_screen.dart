@@ -239,8 +239,7 @@ class _SignupScreenState extends State<SignupScreen> {
         // Show success message and navigate to login
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content:
-                Text('Account created successfully! Please verify your email.'),
+            content: Text('Account created successfully! You can now login.'),
             backgroundColor: Colors.green,
           ),
         );
