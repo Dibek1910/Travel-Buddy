@@ -18,6 +18,9 @@ class ApiConfig {
   static const String userCreatedRides = '$baseUrl/rides/user-created';
   static const String userRideRequests = '$baseUrl/rides/user-requests';
 
+  // Request endpoints
+  static const String getRideRequests = '$baseUrl/requests';
+
   // User endpoints
   static const String userProfile = '$baseUrl/user/profile';
   static const String updateUserProfile = '$baseUrl/user/profile';

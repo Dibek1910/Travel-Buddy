@@ -23,6 +23,15 @@ class _SearchRidePageState extends State<SearchRidePage> {
   String _errorMessage = '';
 
   @override
+  void initState() {
+    super.initState();
+    // Set default date to today
+    _dateController.text = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    // Perform an initial search with empty parameters to show all available rides
+    _searchRides();
+  }
+
+  @override
   void dispose() {
     _fromController.dispose();
     _toController.dispose();
