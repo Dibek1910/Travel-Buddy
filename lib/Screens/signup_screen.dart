@@ -13,6 +13,8 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _phoneController =
+      TextEditingController(); // Added phone controller
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
@@ -27,6 +29,7 @@ class _SignupScreenState extends State<SignupScreen> {
     _firstNameController.dispose();
     _lastNameController.dispose();
     _emailController.dispose();
+    _phoneController.dispose(); // Dispose phone controller
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -102,6 +105,18 @@ class _SignupScreenState extends State<SignupScreen> {
                         decoration: InputDecoration(
                           labelText: 'Email',
                           prefixIcon: Icon(Icons.email),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16.0),
+                      TextField(
+                        controller: _phoneController,
+                        keyboardType: TextInputType.phone,
+                        decoration: InputDecoration(
+                          labelText: 'Phone Number',
+                          prefixIcon: Icon(Icons.phone),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8.0),
                           ),
@@ -207,6 +222,7 @@ class _SignupScreenState extends State<SignupScreen> {
     if (_firstNameController.text.isEmpty ||
         _lastNameController.text.isEmpty ||
         _emailController.text.isEmpty ||
+        _phoneController.text.isEmpty || // Check phone field
         _passwordController.text.isEmpty ||
         _confirmPasswordController.text.isEmpty) {
       setState(() {
@@ -233,6 +249,7 @@ class _SignupScreenState extends State<SignupScreen> {
         _lastNameController.text,
         _emailController.text,
         _passwordController.text,
+        _phoneController.text, // Pass phone number
       );
 
       if (result['success']) {

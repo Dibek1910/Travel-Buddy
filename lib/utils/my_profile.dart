@@ -16,6 +16,8 @@ class _MyProfileState extends State<MyProfile> {
 
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _phoneController =
+      TextEditingController(); // Added phone controller
 
   @override
   void initState() {
@@ -27,6 +29,7 @@ class _MyProfileState extends State<MyProfile> {
   void dispose() {
     _firstNameController.dispose();
     _lastNameController.dispose();
+    _phoneController.dispose(); // Dispose phone controller
     super.dispose();
   }
 
@@ -47,6 +50,8 @@ class _MyProfileState extends State<MyProfile> {
           // Initialize controllers with current values
           _firstNameController.text = _userProfile?['firstName'] ?? '';
           _lastNameController.text = _userProfile?['lastName'] ?? '';
+          _phoneController.text =
+              _userProfile?['phoneNumber'] ?? ''; // Initialize phone controller
         });
       } else {
         setState(() {
@@ -72,6 +77,7 @@ class _MyProfileState extends State<MyProfile> {
       final result = await UserService.updateUserProfile(
         _firstNameController.text,
         _lastNameController.text,
+        _phoneController.text, // Pass phone number to update
       );
 
       if (result['success']) {
@@ -173,6 +179,12 @@ class _MyProfileState extends State<MyProfile> {
             ),
             Divider(),
             ListTile(
+              leading: Icon(Icons.phone, color: Colors.orange),
+              title: Text('Phone Number'),
+              subtitle: Text(_userProfile!['phoneNumber'] ?? 'Not provided'),
+            ),
+            Divider(),
+            ListTile(
               leading: Icon(Icons.star, color: Colors.orange),
               title: Text('Rating'),
               subtitle: Text(
@@ -223,6 +235,17 @@ class _MyProfileState extends State<MyProfile> {
                 ),
               ),
             ),
+            SizedBox(height: 16),
+            TextField(
+              controller: _phoneController,
+              decoration: InputDecoration(
+                labelText: 'Phone Number',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              keyboardType: TextInputType.phone,
+            ),
             SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -234,6 +257,8 @@ class _MyProfileState extends State<MyProfile> {
                       // Reset controllers to original values
                       _firstNameController.text = _userProfile!['firstName'];
                       _lastNameController.text = _userProfile!['lastName'];
+                      _phoneController.text =
+                          _userProfile!['phoneNumber'] ?? '';
                     });
                   },
                   style: OutlinedButton.styleFrom(

@@ -22,6 +22,7 @@ class AuthService {
       if (response.statusCode == 200 && responseData['success']) {
         final authToken = responseData['token'];
         final prefs = await SharedPreferences.getInstance();
+
         await prefs.setString('authToken', authToken);
         await prefs.setString('authorization', 'Bearer $authToken');
 
@@ -33,6 +34,11 @@ class AuthService {
               'userFirstName', responseData['user']['firstName']);
           await prefs.setString(
               'userLastName', responseData['user']['lastName']);
+          // Save phone number if available
+          if (responseData['user']['phoneNumber'] != null) {
+            await prefs.setString(
+                'userPhoneNumber', responseData['user']['phoneNumber']);
+          }
         }
 
         return {
@@ -61,6 +67,7 @@ class AuthService {
     String lastName,
     String email,
     String password,
+    String phoneNumber, // Added phone number parameter
   ) async {
     try {
       final response = await http.post(
@@ -71,6 +78,7 @@ class AuthService {
           'lastName': lastName,
           'email': email,
           'password': password,
+          'phoneNumber': phoneNumber, // Include phone number in request
         }),
       );
 
@@ -119,6 +127,7 @@ class AuthService {
       await prefs.remove('userEmail');
       await prefs.remove('userFirstName');
       await prefs.remove('userLastName');
+      await prefs.remove('userPhoneNumber');
 
       return {
         'success': true,

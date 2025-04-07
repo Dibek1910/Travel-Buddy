@@ -20,6 +20,11 @@ const userSchema = Schema(
       required: true,
       unique: true,
     },
+    phoneNumber: {
+      // Added phone number field
+      type: String,
+      default: "",
+    },
     ratingStats: {
       totalRatings: { type: Number, default: 0 },
       averageRating: { type: Number, default: 0, min: 0, max: 5 },

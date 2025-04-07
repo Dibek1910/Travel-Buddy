@@ -31,20 +31,21 @@ module.exports = {
 
   async updateUserProfile(req, res) {
     const { id: userId } = req.user;
-    const { firstName, lastName } = req.body;
+    const { firstName, lastName, phoneNumber } = req.body; // Added phoneNumber
 
     try {
-      if (!firstName && !lastName) {
+      if (!firstName && !lastName && !phoneNumber) {
         return res.status(400).json({
           success: false,
           message:
-            "At least one field (firstName or lastName) is required for update",
+            "At least one field (firstName, lastName, or phoneNumber) is required for update",
         });
       }
 
       const updateData = {};
       if (firstName) updateData.firstName = firstName;
       if (lastName) updateData.lastName = lastName;
+      if (phoneNumber) updateData.phoneNumber = phoneNumber; // Add phone number to update data
 
       const updatedUser = await User.findByIdAndUpdate(
         userId,

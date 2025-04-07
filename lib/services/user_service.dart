@@ -47,6 +47,7 @@ class UserService {
   static Future<Map<String, dynamic>> updateUserProfile(
     String firstName,
     String lastName,
+    String phoneNumber, // Added phone number parameter
   ) async {
     try {
       final authToken = await _getAuthToken();
@@ -66,6 +67,7 @@ class UserService {
         body: jsonEncode({
           'firstName': firstName,
           'lastName': lastName,
+          'phoneNumber': phoneNumber, // Include phone number in request
         }),
       );
 

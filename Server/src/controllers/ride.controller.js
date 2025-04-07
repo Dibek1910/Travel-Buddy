@@ -1,6 +1,8 @@
 const { startSession } = require("mongoose");
 const Request = require("../models/request.model");
 const Ride = require("../models/ride.model");
+const User = require("../models/user.model");
+const { sendMail } = require("../services/mailer.service");
 
 module.exports = {
   getRideById: async (req, res) => {
@@ -43,7 +45,7 @@ module.exports = {
   },
   async createRide(req, res) {
     try {
-      const { from, to, date, capacity, price, description } = req.body;
+      const { from, to, date, time, capacity, price, description } = req.body; // Added time
 
       if (!from || !to || !date || !capacity) {
         return res.status(400).json({
@@ -58,6 +60,7 @@ module.exports = {
         from,
         to,
         date,
+        time, // Save time
         capacity,
         price,
         description,
@@ -219,10 +222,15 @@ module.exports = {
     session.startTransaction();
 
     try {
-      const requestDocument = await Request.findById(requestId).populate({
-        path: "ride",
-        select: { host: 1 },
-      });
+      const requestDocument = await Request.findById(requestId)
+        .populate({
+          path: "ride",
+          select: { host: 1, from: 1, to: 1, date: 1, time: 1 }, // Include time
+        })
+        .populate({
+          path: "passenger",
+          select: { firstName: 1, lastName: 1, email: 1, phoneNumber: 1 }, // Include phone number
+        });
 
       if (!requestDocument) {
         throw new Error("No request with the given id");
@@ -241,7 +249,10 @@ module.exports = {
             _id: 0,
           },
           { session }
-        );
+        ).populate({
+          path: "host",
+          select: { firstName: 1, lastName: 1, email: 1, phoneNumber: 1 }, // Include phone number
+        });
 
         // Count approved requests
         const approvedRequests = await Request.countDocuments({
@@ -251,6 +262,66 @@ module.exports = {
 
         if (approvedRequests >= ride.capacity) {
           throw new Error("ride is full, cannot add more passengers");
+        }
+
+        // Send email notifications when request is approved
+        try {
+          // Get host details
+          const host = ride.host;
+
+          // Get passenger details
+          const passenger = requestDocument.passenger;
+
+          // Send email to host
+          const hostEmailContent = `
+            <h2>Ride Request Approved</h2>
+            <p>You have approved a ride request from ${passenger.firstName} ${passenger.lastName}.</p>
+            <h3>Passenger Details:</h3>
+            <ul>
+              <li><strong>Name:</strong> ${passenger.firstName} ${passenger.lastName}</li>
+              <li><strong>Email:</strong> ${passenger.email}</li>
+              <li><strong>Phone:</strong> ${passenger.phoneNumber || "Not provided"}</li>
+            </ul>
+            <h3>Ride Details:</h3>
+            <ul>
+              <li><strong>From:</strong> ${requestDocument.ride.from}</li>
+              <li><strong>To:</strong> ${requestDocument.ride.to}</li>
+              <li><strong>Date:</strong> ${requestDocument.ride.date}</li>
+              <li><strong>Time:</strong> ${requestDocument.ride.time || "Not specified"}</li>
+            </ul>
+          `;
+
+          // Send email to passenger
+          const passengerEmailContent = `
+            <h2>Your Ride Request Has Been Approved</h2>
+            <p>Your request to join a ride has been approved by the host.</p>
+            <h3>Host Details:</h3>
+            <ul>
+              <li><strong>Name:</strong> ${host.firstName} ${host.lastName}</li>
+              <li><strong>Email:</strong> ${host.email}</li>
+              <li><strong>Phone:</strong> ${host.phoneNumber || "Not provided"}</li>
+            </ul>
+            <h3>Ride Details:</h3>
+            <ul>
+              <li><strong>From:</strong> ${requestDocument.ride.from}</li>
+              <li><strong>To:</strong> ${requestDocument.ride.to}</li>
+              <li><strong>Date:</strong> ${requestDocument.ride.date}</li>
+              <li><strong>Time:</strong> ${requestDocument.ride.time || "Not specified"}</li>
+            </ul>
+          `;
+
+          // Send emails
+          await sendMail(host.email, "Ride Request Approved", hostEmailContent);
+          await sendMail(
+            passenger.email,
+            "Your Ride Request Has Been Approved",
+            passengerEmailContent
+          );
+
+          console.log("Notification emails sent successfully");
+        } catch (emailError) {
+          console.error("Error sending notification emails:", emailError);
+          // Continue with the request approval even if email sending fails
         }
       }
 
@@ -491,6 +562,7 @@ module.exports = {
       });
     } catch (error) {
       console.error(error);
+
       return res.status(500).json({
         success: false,
         message: "could not update the ride details",

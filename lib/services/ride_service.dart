@@ -15,6 +15,7 @@ class RideService {
     String from,
     String to,
     String date,
+    String time, // Added time parameter
     int capacity,
     dynamic price,
     String description,
@@ -38,6 +39,7 @@ class RideService {
           'from': from,
           'to': to,
           'date': date,
+          'time': time, // Include time in request
           'capacity': capacity,
           'price': price,
           'description': description,

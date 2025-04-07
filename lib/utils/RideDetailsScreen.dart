@@ -140,38 +140,62 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Fixed Row widget to prevent overflow
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        CircleAvatar(
-                          backgroundColor: Colors.orange[100],
-                          child: Text(
-                            widget.rideDetails['host']['firstName'][0] +
-                                widget.rideDetails['host']['lastName'][0],
-                            style: TextStyle(
-                              color: Colors.orange,
-                              fontWeight: FontWeight.bold,
+                        Container(
+                          width: 40.0,
+                          height: 40.0,
+                          decoration: BoxDecoration(
+                            color: Colors.orange[100],
+                            shape: BoxShape.circle,
+                          ),
+                          child: Center(
+                            child: Text(
+                              widget.rideDetails['host']['firstName'][0] +
+                                  widget.rideDetails['host']['lastName'][0],
+                              style: TextStyle(
+                                color: Colors.orange,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
                         SizedBox(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Host: ${widget.rideDetails['host']['firstName']} ${widget.rideDetails['host']['lastName']}',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                        // Use Expanded to make the text content adapt to available space
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Host: ${widget.rideDetails['host']['firstName']} ${widget.rideDetails['host']['lastName']}',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                                overflow: TextOverflow.ellipsis,
                               ),
-                            ),
-                            Text(
-                              'Email: ${widget.rideDetails['host']['email']}',
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 14,
+                              Text(
+                                'Email: ${widget.rideDetails['host']['email']}',
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 14,
+                                ),
+                                overflow: TextOverflow.ellipsis,
                               ),
-                            ),
-                          ],
+                              if (widget.rideDetails['host']['phoneNumber'] !=
+                                  null)
+                                Text(
+                                  'Phone: ${widget.rideDetails['host']['phoneNumber']}',
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 14,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -179,6 +203,9 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                     _buildDetailRow('From', widget.rideDetails['from']),
                     _buildDetailRow('To', widget.rideDetails['to']),
                     _buildDetailRow('Date', widget.rideDetails['date']),
+                    if (widget.rideDetails['time'] != null &&
+                        widget.rideDetails['time'].toString().isNotEmpty)
+                      _buildDetailRow('Time', widget.rideDetails['time']),
                     _buildDetailRow(
                         'Capacity', widget.rideDetails['capacity'].toString()),
                     _buildDetailRow(
@@ -310,26 +337,39 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                           ),
                           title: Text(
                               '${passenger['firstName']} ${passenger['lastName']}'),
-                          subtitle: Text(passenger['email']),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(passenger['email']),
+                              if (passenger['phoneNumber'] != null &&
+                                  passenger['phoneNumber']
+                                      .toString()
+                                      .isNotEmpty)
+                                Text('Phone: ${passenger['phoneNumber']}'),
+                            ],
+                          ),
                           trailing: status == 'pending'
-                              ? Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      icon: Icon(Icons.check,
-                                          color: Colors.green),
-                                      onPressed: () => _updateRequestStatus(
-                                          request['_id'], 'approved'),
-                                      tooltip: 'Approve',
-                                    ),
-                                    IconButton(
-                                      icon:
-                                          Icon(Icons.close, color: Colors.red),
-                                      onPressed: () => _updateRequestStatus(
-                                          request['_id'], 'rejected'),
-                                      tooltip: 'Reject',
-                                    ),
-                                  ],
+                              ? ConstrainedBox(
+                                  constraints: BoxConstraints(maxWidth: 100),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton(
+                                        icon: Icon(Icons.check,
+                                            color: Colors.green),
+                                        onPressed: () => _updateRequestStatus(
+                                            request['_id'], 'approved'),
+                                        tooltip: 'Approve',
+                                      ),
+                                      IconButton(
+                                        icon: Icon(Icons.close,
+                                            color: Colors.red),
+                                        onPressed: () => _updateRequestStatus(
+                                            request['_id'], 'rejected'),
+                                        tooltip: 'Reject',
+                                      ),
+                                    ],
+                                  ),
                                 )
                               : Container(
                                   padding: EdgeInsets.symmetric(

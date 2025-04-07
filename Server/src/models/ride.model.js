@@ -29,6 +29,11 @@ const rideSchema = Schema(
       type: String,
       required: true,
     },
+    time: {
+      // Added time field
+      type: String,
+      default: "",
+    },
     description: {
       type: String,
       required: true,

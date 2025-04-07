@@ -3,6 +3,7 @@ class User {
   final String firstName;
   final String lastName;
   final String email;
+  final String phoneNumber; // Added phone number
   final RatingStats ratingStats;
 
   User({
@@ -11,6 +12,7 @@ class User {
     required this.lastName,
     required this.email,
     required this.ratingStats,
+    this.phoneNumber = '', // Default empty string
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -19,6 +21,7 @@ class User {
       firstName: json['firstName'],
       lastName: json['lastName'],
       email: json['email'],
+      phoneNumber: json['phoneNumber'] ?? '', // Handle null case
       ratingStats: RatingStats.fromJson(json['ratingStats']),
     );
   }
@@ -29,6 +32,7 @@ class User {
       'firstName': firstName,
       'lastName': lastName,
       'email': email,
+      'phoneNumber': phoneNumber,
       'ratingStats': ratingStats.toJson(),
     };
   }

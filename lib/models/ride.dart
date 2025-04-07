@@ -8,6 +8,7 @@ class Ride {
   final int capacity;
   final dynamic price;
   final String date;
+  final String time; // Added time field
   final String description;
   final List<Request> requests;
   final String createdAt;
@@ -20,6 +21,7 @@ class Ride {
     required this.capacity,
     required this.price,
     required this.date,
+    required this.time, // Added time parameter
     required this.description,
     required this.requests,
     required this.createdAt,
@@ -41,6 +43,7 @@ class Ride {
       capacity: json['capacity'],
       price: json['price'],
       date: json['date'],
+      time: json['time'] ?? '', // Handle null case
       description: json['description'],
       requests: requestsList,
       createdAt: json['createdAt'],
@@ -56,6 +59,7 @@ class Ride {
       'capacity': capacity,
       'price': price,
       'date': date,
+      'time': time,
       'description': description,
       'requests': requests.map((request) => request.toJson()).toList(),
       'createdAt': createdAt,

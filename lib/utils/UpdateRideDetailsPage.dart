@@ -21,6 +21,8 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
   final TextEditingController _fromController = TextEditingController();
   final TextEditingController _toController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
+  final TextEditingController _timeController =
+      TextEditingController(); // Added time controller
   final TextEditingController _capacityController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
@@ -35,6 +37,8 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
     _fromController.text = widget.ride['from'] ?? '';
     _toController.text = widget.ride['to'] ?? '';
     _dateController.text = widget.ride['date'] ?? '';
+    _timeController.text =
+        widget.ride['time'] ?? ''; // Initialize time controller
     _capacityController.text = widget.ride['capacity']?.toString() ?? '';
     _priceController.text = widget.ride['price']?.toString() ?? '';
     _descriptionController.text = widget.ride['description'] ?? '';
@@ -45,6 +49,7 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
     _fromController.dispose();
     _toController.dispose();
     _dateController.dispose();
+    _timeController.dispose(); // Dispose time controller
     _capacityController.dispose();
     _priceController.dispose();
     _descriptionController.dispose();
@@ -104,6 +109,9 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
                     _buildTextField('To', _toController),
                     SizedBox(height: 16),
                     _buildDateInputField('Date', _dateController),
+                    SizedBox(height: 16),
+                    _buildTimeInputField(
+                        'Time', _timeController), // Added time input field
                     SizedBox(height: 16),
                     _buildTextField(
                       'Capacity',
@@ -215,6 +223,24 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
     );
   }
 
+  Widget _buildTimeInputField(String label, TextEditingController controller) {
+    return GestureDetector(
+      onTap: () => _selectTime(context, controller),
+      child: AbsorbPointer(
+        child: TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            labelText: label,
+            suffixIcon: Icon(Icons.access_time),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _selectDate(
       BuildContext context, TextEditingController controller) async {
     final DateTime? pickedDate = await showDatePicker(
@@ -227,6 +253,20 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
     if (pickedDate != null) {
       setState(() {
         controller.text = DateFormat('yyyy-MM-dd').format(pickedDate);
+      });
+    }
+  }
+
+  Future<void> _selectTime(
+      BuildContext context, TextEditingController controller) async {
+    final TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+
+    if (pickedTime != null) {
+      setState(() {
+        controller.text = pickedTime.format(context);
       });
     }
   }
@@ -253,6 +293,7 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
         'from': _fromController.text,
         'to': _toController.text,
         'date': _dateController.text,
+        'time': _timeController.text, // Include time in updated details
         'capacity': int.parse(_capacityController.text),
         'price': _priceController.text.isEmpty
             ? 0

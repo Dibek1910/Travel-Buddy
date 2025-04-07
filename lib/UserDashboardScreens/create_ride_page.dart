@@ -16,6 +16,8 @@ class _CreateRidePageState extends State<CreateRidePage> {
   final TextEditingController _fromController = TextEditingController();
   final TextEditingController _toController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
+  final TextEditingController _timeController =
+      TextEditingController(); // Added time controller
   final TextEditingController _capacityController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
@@ -28,6 +30,7 @@ class _CreateRidePageState extends State<CreateRidePage> {
     _fromController.dispose();
     _toController.dispose();
     _dateController.dispose();
+    _timeController.dispose(); // Dispose time controller
     _capacityController.dispose();
     _priceController.dispose();
     _descriptionController.dispose();
@@ -85,6 +88,9 @@ class _CreateRidePageState extends State<CreateRidePage> {
                       _buildTextField('To', _toController),
                       SizedBox(height: 16.0),
                       _buildDateInputField('Date', _dateController),
+                      SizedBox(height: 16.0),
+                      _buildTimeInputField(
+                          'Time', _timeController), // Added time input field
                       SizedBox(height: 16.0),
                       _buildTextField(
                         'Capacity',
@@ -175,6 +181,24 @@ class _CreateRidePageState extends State<CreateRidePage> {
     );
   }
 
+  Widget _buildTimeInputField(String label, TextEditingController controller) {
+    return GestureDetector(
+      onTap: () => _selectTime(context, controller),
+      child: AbsorbPointer(
+        child: TextField(
+          controller: controller,
+          decoration: InputDecoration(
+            labelText: label,
+            suffixIcon: Icon(Icons.access_time),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _selectDate(
       BuildContext context, TextEditingController controller) async {
     final DateTime? pickedDate = await showDatePicker(
@@ -191,11 +215,26 @@ class _CreateRidePageState extends State<CreateRidePage> {
     }
   }
 
+  Future<void> _selectTime(
+      BuildContext context, TextEditingController controller) async {
+    final TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+
+    if (pickedTime != null) {
+      setState(() {
+        controller.text = pickedTime.format(context);
+      });
+    }
+  }
+
   Future<void> _createRide() async {
     // Validate inputs
     if (_fromController.text.isEmpty ||
         _toController.text.isEmpty ||
         _dateController.text.isEmpty ||
+        _timeController.text.isEmpty || // Validate time
         _capacityController.text.isEmpty) {
       setState(() {
         _message = 'Please fill all required fields';
@@ -213,6 +252,7 @@ class _CreateRidePageState extends State<CreateRidePage> {
         _fromController.text,
         _toController.text,
         _dateController.text,
+        _timeController.text, // Pass time
         int.parse(_capacityController.text),
         _priceController.text.isEmpty ? 0 : double.parse(_priceController.text),
         _descriptionController.text,
@@ -228,6 +268,7 @@ class _CreateRidePageState extends State<CreateRidePage> {
         _fromController.clear();
         _toController.clear();
         _dateController.clear();
+        _timeController.clear(); // Clear time
         _capacityController.clear();
         _priceController.clear();
         _descriptionController.clear();
