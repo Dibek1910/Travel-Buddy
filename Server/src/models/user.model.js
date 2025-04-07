@@ -1,5 +1,5 @@
-const { Schema, model } = require("mongoose")
-const { genSalt, hash, compare } = require("bcrypt")
+const { Schema, model } = require("mongoose");
+const { genSalt, hash, compare } = require("bcrypt");
 
 const userSchema = Schema(
   {
@@ -29,26 +29,25 @@ const userSchema = Schema(
       default: true, // Changed default to true
     },
   },
-  { timestamps: true },
-)
+  { timestamps: true }
+);
 
 userSchema.pre("save", async function (next) {
   try {
     if (!this.isModified("password")) {
-      return next()
+      return next();
     }
-    const salt = await genSalt(11)
-    this.password = await hash(this.password, salt)
-    next()
+    const salt = await genSalt(11);
+    this.password = await hash(this.password, salt);
+    next();
   } catch (err) {
-    next(err)
+    next(err);
   }
-})
+});
 
 userSchema.methods.validUser = async function (password) {
-  return await compare(password, this.password)
-}
+  return await compare(password, this.password);
+};
 
-const User = model("User", userSchema)
-module.exports = User
-
+const User = model("User", userSchema);
+module.exports = User;
