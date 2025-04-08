@@ -1,8 +1,27 @@
 const { startSession } = require("mongoose");
+const fs = require("fs");
+const path = require("path");
 const Request = require("../models/request.model");
 const Ride = require("../models/ride.model");
 const User = require("../models/user.model");
 const { sendMail } = require("../services/mailer.service");
+
+// Function to read and populate email templates
+const getEmailTemplate = (templateName, replacements) => {
+  const templatePath = path.join(__dirname, "../templates", templateName);
+  let template = fs.readFileSync(templatePath, "utf8");
+
+  // Replace all placeholders with actual values
+  Object.keys(replacements).forEach((key) => {
+    const placeholder = new RegExp(`{{${key}}}`, "g");
+    template = template.replace(
+      placeholder,
+      replacements[key] || "Not specified"
+    );
+  });
+
+  return template;
+};
 
 module.exports = {
   getRideById: async (req, res) => {
@@ -104,13 +123,41 @@ module.exports = {
         throw new Error("You cannot request to join your own ride");
       }
 
-      const existingRide = await Request.findOne({
+      // Check if the ride is already full
+      const approvedRequests = await Request.countDocuments({
+        ride: rideId,
+        status: "approved",
+      });
+
+      if (approvedRequests >= ride.capacity) {
+        throw new Error(
+          "This ride is already full. No more requests can be made."
+        );
+      }
+
+      // Check if the user already has a request for this ride
+      const existingRequest = await Request.findOne({
         ride: rideId,
         passenger: req.user.id,
       });
 
-      if (existingRide) {
-        throw new Error("Request to the same ride already exists");
+      if (existingRequest) {
+        // If the existing request is rejected, allow a new request
+        if (existingRequest.status === "rejected") {
+          // Delete the old rejected request
+          await Request.findByIdAndDelete(existingRequest._id, { session });
+
+          // Remove the request from the ride's requests array
+          ride.requests = ride.requests.filter(
+            (request) => request.toString() !== existingRequest._id.toString()
+          );
+          await ride.save({ session });
+        } else {
+          // If the request is pending or approved, don't allow a new request
+          throw new Error(
+            `You already have a ${existingRequest.status} request for this ride. You cannot make another request until it is rejected.`
+          );
+        }
       }
 
       const request = new Request({
@@ -225,7 +272,7 @@ module.exports = {
       const requestDocument = await Request.findById(requestId)
         .populate({
           path: "ride",
-          select: { host: 1, from: 1, to: 1, date: 1, time: 1 }, // Include time
+          select: { host: 1, from: 1, to: 1, date: 1, time: 1, capacity: 1 }, // Include capacity
         })
         .populate({
           path: "passenger",
@@ -241,15 +288,10 @@ module.exports = {
       }
 
       if (status === "approved") {
-        const ride = await Ride.findById(
-          requestDocument.ride._id,
-          {
-            requests: 1,
-            capacity: 1,
-            _id: 0,
-          },
-          { session }
-        ).populate({
+        // Get the ride with its current state
+        const ride = await Ride.findById(requestDocument.ride._id, null, {
+          session,
+        }).populate({
           path: "host",
           select: { firstName: 1, lastName: 1, email: 1, phoneNumber: 1 }, // Include phone number
         });
@@ -261,54 +303,53 @@ module.exports = {
         });
 
         if (approvedRequests >= ride.capacity) {
-          throw new Error("ride is full, cannot add more passengers");
+          throw new Error("Ride is full, cannot approve more requests");
         }
+
+        // Calculate remaining seats after this approval
+        const remainingSeats = ride.capacity - (approvedRequests + 1);
 
         // Send email notifications when request is approved
         try {
           // Get host details
           const host = ride.host;
-
-          // Get passenger details
           const passenger = requestDocument.passenger;
 
-          // Send email to host
-          const hostEmailContent = `
-            <h2>Ride Request Approved</h2>
-            <p>You have approved a ride request from ${passenger.firstName} ${passenger.lastName}.</p>
-            <h3>Passenger Details:</h3>
-            <ul>
-              <li><strong>Name:</strong> ${passenger.firstName} ${passenger.lastName}</li>
-              <li><strong>Email:</strong> ${passenger.email}</li>
-              <li><strong>Phone:</strong> ${passenger.phoneNumber || "Not provided"}</li>
-            </ul>
-            <h3>Ride Details:</h3>
-            <ul>
-              <li><strong>From:</strong> ${requestDocument.ride.from}</li>
-              <li><strong>To:</strong> ${requestDocument.ride.to}</li>
-              <li><strong>Date:</strong> ${requestDocument.ride.date}</li>
-              <li><strong>Time:</strong> ${requestDocument.ride.time || "Not specified"}</li>
-            </ul>
-          `;
+          // Prepare data for host email template
+          const hostEmailData = {
+            passengerFirstName: passenger.firstName,
+            passengerLastName: passenger.lastName,
+            passengerEmail: passenger.email,
+            passengerPhone: passenger.phoneNumber || "Not provided",
+            rideFrom: requestDocument.ride.from,
+            rideTo: requestDocument.ride.to,
+            rideDate: requestDocument.ride.date,
+            rideTime: requestDocument.ride.time || "Not specified",
+            remainingSeats: remainingSeats,
+            capacity: ride.capacity,
+          };
 
-          // Send email to passenger
-          const passengerEmailContent = `
-            <h2>Your Ride Request Has Been Approved</h2>
-            <p>Your request to join a ride has been approved by the host.</p>
-            <h3>Host Details:</h3>
-            <ul>
-              <li><strong>Name:</strong> ${host.firstName} ${host.lastName}</li>
-              <li><strong>Email:</strong> ${host.email}</li>
-              <li><strong>Phone:</strong> ${host.phoneNumber || "Not provided"}</li>
-            </ul>
-            <h3>Ride Details:</h3>
-            <ul>
-              <li><strong>From:</strong> ${requestDocument.ride.from}</li>
-              <li><strong>To:</strong> ${requestDocument.ride.to}</li>
-              <li><strong>Date:</strong> ${requestDocument.ride.date}</li>
-              <li><strong>Time:</strong> ${requestDocument.ride.time || "Not specified"}</li>
-            </ul>
-          `;
+          // Prepare data for passenger email template
+          const passengerEmailData = {
+            hostFirstName: host.firstName,
+            hostLastName: host.lastName,
+            hostEmail: host.email,
+            hostPhone: host.phoneNumber || "Not provided",
+            rideFrom: requestDocument.ride.from,
+            rideTo: requestDocument.ride.to,
+            rideDate: requestDocument.ride.date,
+            rideTime: requestDocument.ride.time || "Not specified",
+          };
+
+          // Get email templates with populated data
+          const hostEmailContent = getEmailTemplate(
+            "approval-host-email.html",
+            hostEmailData
+          );
+          const passengerEmailContent = getEmailTemplate(
+            "approval-passenger-email.html",
+            passengerEmailData
+          );
 
           // Send emails
           await sendMail(host.email, "Ride Request Approved", hostEmailContent);
@@ -322,6 +363,42 @@ module.exports = {
         } catch (emailError) {
           console.error("Error sending notification emails:", emailError);
           // Continue with the request approval even if email sending fails
+        }
+      } else if (status === "rejected") {
+        // Send rejection email to passenger
+        try {
+          const passenger = requestDocument.passenger;
+          const ride = await Ride.findById(requestDocument.ride._id).populate({
+            path: "host",
+            select: { firstName: 1, lastName: 1 },
+          });
+
+          // Prepare data for rejection email template
+          const rejectionEmailData = {
+            hostFirstName: ride.host.firstName,
+            hostLastName: ride.host.lastName,
+            rideFrom: requestDocument.ride.from,
+            rideTo: requestDocument.ride.to,
+            rideDate: requestDocument.ride.date,
+            rideTime: requestDocument.ride.time || "Not specified",
+          };
+
+          // Get email template with populated data
+          const rejectionEmailContent = getEmailTemplate(
+            "rejection-passenger-email.html",
+            rejectionEmailData
+          );
+
+          await sendMail(
+            passenger.email,
+            "Your Ride Request Has Been Rejected",
+            rejectionEmailContent
+          );
+
+          console.log("Rejection email sent successfully");
+        } catch (emailError) {
+          console.error("Error sending rejection email:", emailError);
+          // Continue with the request rejection even if email sending fails
         }
       }
 
@@ -414,9 +491,6 @@ module.exports = {
       // Add filter to exclude rides created by the current user
       query.host = { $ne: req.user.id };
 
-      // Add filter to only show rides with available capacity
-      query.capacity = { $gt: 0 };
-
       // Get current date to filter out past rides
       const currentDate = new Date();
       currentDate.setHours(0, 0, 0, 0);
@@ -429,6 +503,7 @@ module.exports = {
 
       console.log("Search query:", query);
 
+      // Get all rides matching the query
       const rides = await Ride.find(query)
         .populate({
           path: "host",
@@ -436,10 +511,44 @@ module.exports = {
         })
         .sort({ date: 1, createdAt: -1 });
 
+      // For each ride, check if it's full by counting approved requests
+      const ridesWithAvailability = await Promise.all(
+        rides.map(async (ride) => {
+          const approvedRequests = await Request.countDocuments({
+            ride: ride._id,
+            status: "approved",
+          });
+
+          // Check if the current user already has a non-rejected request for this ride
+          const userRequest = await Request.findOne({
+            ride: ride._id,
+            passenger: req.user.id,
+            status: { $ne: "rejected" },
+          });
+
+          // Add virtual properties to the ride object
+          const rideObj = ride.toObject();
+          rideObj.isFull = approvedRequests >= ride.capacity;
+          rideObj.availableSeats = Math.max(
+            0,
+            ride.capacity - approvedRequests
+          );
+          rideObj.userHasRequest = !!userRequest;
+          rideObj.userRequestStatus = userRequest ? userRequest.status : null;
+
+          return rideObj;
+        })
+      );
+
+      // Filter out full rides and rides where the user already has a pending or approved request
+      const availableRides = ridesWithAvailability.filter(
+        (ride) => !ride.isFull && !ride.userHasRequest
+      );
+
       res.json({
         success: true,
         message: "these are the rides that match the given parameters",
-        rides,
+        rides: availableRides,
       });
     } catch (err) {
       console.log(err);
@@ -508,10 +617,30 @@ module.exports = {
         })
         .sort({ createdAt: -1 });
 
+      // For each ride, calculate the number of approved requests
+      const ridesWithAvailability = await Promise.all(
+        rides.map(async (ride) => {
+          const approvedRequests = await Request.countDocuments({
+            ride: ride._id,
+            status: "approved",
+          });
+
+          const rideObj = ride.toObject();
+          rideObj.approvedRequests = approvedRequests;
+          rideObj.availableSeats = Math.max(
+            0,
+            ride.capacity - approvedRequests
+          );
+          rideObj.isFull = approvedRequests >= ride.capacity;
+
+          return rideObj;
+        })
+      );
+
       return res.json({
         success: true,
         message: "These are the rides created by the given user",
-        rides,
+        rides: ridesWithAvailability,
       });
     } catch (err) {
       console.log(err);

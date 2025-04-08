@@ -125,6 +125,13 @@ class RideItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Calculate capacity information
+    final int capacity = ride['capacity'] ?? 0;
+    final int approvedRequests = ride['approvedRequests'] ?? 0;
+    final int availableSeats =
+        ride['availableSeats'] ?? (capacity - approvedRequests);
+    final bool isFull = ride['isFull'] ?? (approvedRequests >= capacity);
+
     return Card(
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       elevation: 3,
@@ -146,6 +153,22 @@ class RideItem extends StatelessWidget {
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
+                    ),
+                  ),
+                ),
+                // Show capacity status badge
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: isFull ? Colors.red[100] : Colors.green[100],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    isFull ? 'FULL' : '$availableSeats SEATS',
+                    style: TextStyle(
+                      color: isFull ? Colors.red[800] : Colors.green[800],
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
                     ),
                   ),
                 ),

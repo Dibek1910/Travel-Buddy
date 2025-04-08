@@ -18,11 +18,13 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
   List<dynamic> _requests = [];
   String _errorMessage = '';
   bool _isCurrentUserHost = false;
+  int _approvedRequests = 0;
 
   @override
   void initState() {
     super.initState();
     _checkIfUserIsHost();
+    _countApprovedRequests();
   }
 
   Future<void> _checkIfUserIsHost() async {
@@ -42,6 +44,27 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
     }
   }
 
+  Future<void> _countApprovedRequests() async {
+    // If the ride already has the count from the backend, use it
+    if (widget.rideDetails['approvedRequests'] != null) {
+      setState(() {
+        _approvedRequests = widget.rideDetails['approvedRequests'];
+      });
+      return;
+    }
+
+    // Otherwise, count from the requests if available
+    if (widget.rideDetails['requests'] != null) {
+      final approvedCount = (widget.rideDetails['requests'] as List)
+          .where((request) => request['status'] == 'approved')
+          .length;
+
+      setState(() {
+        _approvedRequests = approvedCount;
+      });
+    }
+  }
+
   Future<void> _fetchRideRequests() async {
     if (!_isCurrentUserHost) return;
 
@@ -58,6 +81,10 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
         _isLoading = false;
         if (result['success']) {
           _requests = result['requests'] ?? [];
+
+          // Count approved requests
+          _approvedRequests =
+              _requests.where((req) => req['status'] == 'approved').length;
         } else {
           _errorMessage = result['message'];
         }
@@ -113,6 +140,11 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Calculate available seats
+    final int capacity = widget.rideDetails['capacity'] ?? 0;
+    final int availableSeats = capacity - _approvedRequests;
+    final bool isFull = availableSeats <= 0;
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Ride Details'),
@@ -209,11 +241,50 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                     _buildDetailRow(
                         'Capacity', widget.rideDetails['capacity'].toString()),
                     _buildDetailRow(
+                        'Available Seats', availableSeats.toString()),
+                    _buildDetailRow(
                         'Price', widget.rideDetails['price'].toString()),
                     if (widget.rideDetails['description'] != null &&
                         widget.rideDetails['description'].toString().isNotEmpty)
                       _buildDetailRow(
                           'Description', widget.rideDetails['description']),
+
+                    // Show capacity status
+                    Container(
+                      margin: EdgeInsets.only(top: 16),
+                      padding: EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: isFull ? Colors.red[50] : Colors.green[50],
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: isFull ? Colors.red[300]! : Colors.green[300]!,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            isFull
+                                ? Icons.error_outline
+                                : Icons.check_circle_outline,
+                            color: isFull ? Colors.red[700] : Colors.green[700],
+                          ),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              isFull
+                                  ? 'This ride is full'
+                                  : 'This ride has $availableSeats available seats',
+                              style: TextStyle(
+                                color: isFull
+                                    ? Colors.red[700]
+                                    : Colors.green[700],
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -273,6 +344,10 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
       );
     }
 
+    // Calculate if the ride is full
+    final int capacity = widget.rideDetails['capacity'] ?? 0;
+    final bool isFull = _approvedRequests >= capacity;
+
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
@@ -283,11 +358,38 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Ride Requests',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: isFull ? Colors.red[100] : Colors.green[100],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    isFull ? 'FULL' : 'AVAILABLE',
+                    style: TextStyle(
+                      color: isFull ? Colors.red[800] : Colors.green[800],
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 8),
             Text(
-              'Ride Requests',
+              'Approved: $_approvedRequests / $capacity seats',
               style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+                color: Colors.grey[600],
               ),
             ),
             SizedBox(height: 16),
@@ -356,10 +458,15 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                                     children: [
                                       IconButton(
                                         icon: Icon(Icons.check,
-                                            color: Colors.green),
-                                        onPressed: () => _updateRequestStatus(
-                                            request['_id'], 'approved'),
-                                        tooltip: 'Approve',
+                                            color: isFull
+                                                ? Colors.grey
+                                                : Colors.green),
+                                        onPressed: isFull
+                                            ? null
+                                            : () => _updateRequestStatus(
+                                                request['_id'], 'approved'),
+                                        tooltip:
+                                            isFull ? 'Ride is full' : 'Approve',
                                       ),
                                       IconButton(
                                         icon: Icon(Icons.close,

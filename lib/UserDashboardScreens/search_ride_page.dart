@@ -267,6 +267,8 @@ class _SearchRidePageState extends State<SearchRidePage> {
             backgroundColor: Colors.green,
           ),
         );
+        // Refresh the search results after requesting a ride
+        _searchRides();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -302,6 +304,11 @@ class RideSearchItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Check if the ride is full
+    final bool isFull = ride['isFull'] ?? false;
+    final int availableSeats = ride['availableSeats'] ?? 0;
+    final bool userHasRequest = ride['userHasRequest'] ?? false;
+
     return Card(
       margin: EdgeInsets.only(bottom: 12),
       elevation: 3,
@@ -359,16 +366,50 @@ class RideSearchItem extends StatelessWidget {
                       ],
                     ),
                   ),
-                  ElevatedButton(
-                    onPressed: () => onRequestRide(ride['_id']),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: Text('Request'),
-                  ),
+                  isFull
+                      ? Container(
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.red[100],
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.red),
+                          ),
+                          child: Text(
+                            'FULL',
+                            style: TextStyle(
+                              color: Colors.red,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        )
+                      : userHasRequest
+                          ? Container(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.blue[100],
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.blue),
+                              ),
+                              child: Text(
+                                'REQUESTED',
+                                style: TextStyle(
+                                  color: Colors.blue,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            )
+                          : ElevatedButton(
+                              onPressed: () => onRequestRide(ride['_id']),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.orange,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: Text('Request'),
+                            ),
                 ],
               ),
               Divider(height: 24),
@@ -393,7 +434,7 @@ class RideSearchItem extends StatelessWidget {
                             Icons.people, 'Capacity: ${ride['capacity']}'),
                         SizedBox(height: 8),
                         _buildInfoRow(
-                            Icons.attach_money, 'Price: ${ride['price']}'),
+                            Icons.event_seat, 'Available: $availableSeats'),
                       ],
                     ),
                   ),
