@@ -22,6 +22,7 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
   final TextEditingController _fromController = TextEditingController();
   final TextEditingController _toController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
+  final TextEditingController _timeController = TextEditingController();
   final TextEditingController _capacityController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
@@ -30,14 +31,15 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
   bool _isLoading = false;
   String _message = '';
   DateTime? _selectedDate;
+  TimeOfDay? _selectedTime;
 
   @override
   void initState() {
     super.initState();
-    _populateFields();
+    _initializeFields();
   }
 
-  void _populateFields() {
+  void _initializeFields() {
     final ride = widget.rideDetails;
 
     _fromController.text = ride['from'] ?? '';
@@ -47,12 +49,16 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
     _priceController.text = ride['price']?.toString() ?? '';
     _descriptionController.text = ride['description'] ?? '';
 
+    // Parse date and time
     if (ride['date'] != null) {
       try {
-        _selectedDate = DateTime.parse(ride['date']);
-        _dateController.text = DateFormat('yyyy-MM-dd').format(_selectedDate!);
+        final dateTime = DateTime.parse(ride['date']);
+        _selectedDate = dateTime;
+        _selectedTime = TimeOfDay.fromDateTime(dateTime);
+        _dateController.text = DateFormat('yyyy-MM-dd').format(dateTime);
+        _timeController.text = _selectedTime!.format(context);
       } catch (e) {
-        _dateController.text = ride['date'];
+        print('Error parsing date: $e');
       }
     }
   }
@@ -62,6 +68,7 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
     _fromController.dispose();
     _toController.dispose();
     _dateController.dispose();
+    _timeController.dispose();
     _capacityController.dispose();
     _phoneController.dispose();
     _priceController.dispose();
@@ -73,8 +80,9 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Update Ride'),
+        title: Text('Edit Ride'),
         centerTitle: true,
+        elevation: 0,
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -98,22 +106,24 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
                           children: [
                             Icon(Icons.edit, color: Colors.orange, size: 28),
                             SizedBox(width: 12),
-                            Text(
-                              'Update Ride Details',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.grey[800],
+                            Expanded(
+                              child: Text(
+                                'Edit Ride Details',
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey[800],
+                                ),
                               ),
                             ),
                           ],
                         ),
                         SizedBox(height: 8),
                         Text(
-                          'Modify your ride information',
+                          'Update only the fields you wish to change. Others will remain unchanged.',
                           style: TextStyle(
                             color: Colors.grey[600],
-                            fontSize: 16,
+                            fontSize: 14,
                           ),
                         ),
                         if (_message.isNotEmpty) ...[
@@ -170,6 +180,7 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
                         LocationAutocompleteField(
                           label: 'From',
                           controller: _fromController,
+                          initialValue: _fromController.text,
                           onLocationSelected: (location) {
                             _fromController.text = location;
                           },
@@ -178,34 +189,68 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
                         LocationAutocompleteField(
                           label: 'To',
                           controller: _toController,
+                          initialValue: _toController.text,
                           onLocationSelected: (location) {
                             _toController.text = location;
                           },
                         ),
                         SizedBox(height: 16),
-                        TextFormField(
-                          controller: _dateController,
-                          decoration: InputDecoration(
-                            labelText: 'Date',
-                            prefixIcon: Icon(Icons.calendar_today,
-                                color: Colors.orange),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12.0),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                controller: _dateController,
+                                decoration: InputDecoration(
+                                  labelText: 'Date',
+                                  prefixIcon: Icon(Icons.calendar_today,
+                                      color: Colors.orange),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12.0),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12.0),
+                                    borderSide: BorderSide(
+                                        color: Colors.orange, width: 2),
+                                  ),
+                                ),
+                                readOnly: true,
+                                onTap: _selectDate,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please select a date';
+                                  }
+                                  return null;
+                                },
+                              ),
                             ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12.0),
-                              borderSide:
-                                  BorderSide(color: Colors.orange, width: 2),
+                            SizedBox(width: 16),
+                            Expanded(
+                              child: TextFormField(
+                                controller: _timeController,
+                                decoration: InputDecoration(
+                                  labelText: 'Time',
+                                  prefixIcon: Icon(Icons.access_time,
+                                      color: Colors.orange),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12.0),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12.0),
+                                    borderSide: BorderSide(
+                                        color: Colors.orange, width: 2),
+                                  ),
+                                ),
+                                readOnly: true,
+                                onTap: _selectTime,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please select a time';
+                                  }
+                                  return null;
+                                },
+                              ),
                             ),
-                          ),
-                          readOnly: true,
-                          onTap: _selectDate,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please select a date';
-                            }
-                            return null;
-                          },
+                          ],
                         ),
                       ],
                     ),
@@ -342,7 +387,7 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
                 ),
                 SizedBox(height: 24),
 
-                // Update Ride Button
+                // Update Button
                 ElevatedButton(
                   onPressed: _isLoading ? null : _updateRide,
                   style: ElevatedButton.styleFrom(
@@ -371,7 +416,7 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
                       : Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.update),
+                            Icon(Icons.save),
                             SizedBox(width: 8),
                             Text(
                               'Update Ride',
@@ -419,15 +464,35 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
     }
   }
 
+  Future<void> _selectTime() async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: _selectedTime ?? TimeOfDay.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: Colors.orange,
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: Colors.black,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null && picked != _selectedTime) {
+      setState(() {
+        _selectedTime = picked;
+        _timeController.text = picked.format(context);
+      });
+    }
+  }
+
   Future<void> _updateRide() async {
     if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    if (_fromController.text.isEmpty || _toController.text.isEmpty) {
-      setState(() {
-        _message = 'Please select both pickup and destination locations';
-      });
       return;
     }
 
@@ -443,17 +508,49 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
           ? double.parse(_priceController.text)
           : null;
 
-      final updatedDetails = {
-        'from': _fromController.text,
-        'to': _toController.text,
-        'date': _dateController.text,
-        'capacity': capacity,
-        'phoneNo': phoneNo,
-        'description': _descriptionController.text,
-      };
+      // Combine date and time
+      DateTime? dateTime;
+      if (_selectedDate != null && _selectedTime != null) {
+        dateTime = DateTime(
+          _selectedDate!.year,
+          _selectedDate!.month,
+          _selectedDate!.day,
+          _selectedTime!.hour,
+          _selectedTime!.minute,
+        );
+      }
 
-      if (price != null) {
+      final updatedDetails = <String, dynamic>{};
+
+      // Only include changed fields
+      if (_fromController.text != widget.rideDetails['from']) {
+        updatedDetails['from'] = _fromController.text;
+      }
+      if (_toController.text != widget.rideDetails['to']) {
+        updatedDetails['to'] = _toController.text;
+      }
+      if (dateTime != null) {
+        updatedDetails['date'] = dateTime.toIso8601String();
+      }
+      if (capacity != widget.rideDetails['capacity']) {
+        updatedDetails['capacity'] = capacity;
+      }
+      if (phoneNo != widget.rideDetails['phoneNo']) {
+        updatedDetails['phoneNo'] = phoneNo;
+      }
+      if (price != widget.rideDetails['price']) {
         updatedDetails['price'] = price;
+      }
+      if (_descriptionController.text != widget.rideDetails['description']) {
+        updatedDetails['description'] = _descriptionController.text;
+      }
+
+      if (updatedDetails.isEmpty) {
+        setState(() {
+          _message = 'No changes detected';
+          _isLoading = false;
+        });
+        return;
       }
 
       final result = await RideService.updateRideDetails(
@@ -467,8 +564,6 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
       });
 
       if (result['success']) {
-        widget.onRideUpdated();
-
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
@@ -483,7 +578,8 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
           ),
         );
 
-        // Navigate back
+        // Notify parent and go back
+        widget.onRideUpdated();
         Navigator.pop(context);
       }
     } catch (error) {

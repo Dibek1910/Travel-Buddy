@@ -1,49 +1,28 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:travel_buddy/config/api_config.dart';
+import 'package:travel_buddy/services/auth_service.dart';
 
 class RideService {
-  // Get auth token from shared preferences
-  static Future<String?> _getAuthToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('authToken');
-  }
-
-  // Create a new ride
+  // Create a new ride - Fixed: Accept Map<String, dynamic> parameter
   static Future<Map<String, dynamic>> createRide(
-    String from,
-    String to,
-    String date,
-    int capacity,
-    int phoneNo,
-    double? price,
-    String description,
-  ) async {
+      Map<String, dynamic> rideData) async {
     try {
-      final authToken = await _getAuthToken();
+      final authToken = await AuthService.getAuthToken();
       if (authToken == null) {
         return {
           'success': false,
-          'message': 'Authentication token not found',
+          'message': 'No authentication token found',
         };
       }
 
       final response = await http.post(
         Uri.parse(ApiConfig.createRide),
         headers: {
-          'Authorization': 'Bearer $authToken',
           'Content-Type': 'application/json',
+          'Authorization': 'Bearer $authToken',
         },
-        body: jsonEncode({
-          'from': from,
-          'to': to,
-          'date': date,
-          'capacity': capacity,
-          'phoneNo': phoneNo,
-          'price': price,
-          'description': description,
-        }),
+        body: jsonEncode(rideData),
       );
 
       final responseData = jsonDecode(response.body);
@@ -62,31 +41,32 @@ class RideService {
 
   // Search for rides
   static Future<Map<String, dynamic>> searchRides(
-    String? from,
-    String? to,
-    String? date,
-  ) async {
+      String? from, String? to, String? date) async {
     try {
-      final authToken = await _getAuthToken();
+      final authToken = await AuthService.getAuthToken();
       if (authToken == null) {
         return {
           'success': false,
-          'message': 'Authentication token not found',
+          'message': 'No authentication token found',
         };
       }
 
-      final body = <String, dynamic>{};
-      if (from != null && from.isNotEmpty) body['from'] = from;
-      if (to != null && to.isNotEmpty) body['to'] = to;
-      if (date != null && date.isNotEmpty) body['date'] = date;
+      // Build query parameters
+      Map<String, String> queryParams = {};
+      if (from != null && from.isNotEmpty) queryParams['from'] = from;
+      if (to != null && to.isNotEmpty) queryParams['to'] = to;
+      if (date != null && date.isNotEmpty) queryParams['date'] = date;
 
-      final response = await http.post(
-        Uri.parse(ApiConfig.searchRides),
+      final uri = Uri.parse(ApiConfig.searchRides).replace(
+        queryParameters: queryParams.isNotEmpty ? queryParams : null,
+      );
+
+      final response = await http.get(
+        uri,
         headers: {
-          'Authorization': 'Bearer $authToken',
           'Content-Type': 'application/json',
+          'Authorization': 'Bearer $authToken',
         },
-        body: jsonEncode(body),
       );
 
       final responseData = jsonDecode(response.body);
@@ -103,131 +83,125 @@ class RideService {
     }
   }
 
-  // Get ride by ID
-  static Future<Map<String, dynamic>> getRideById(String rideId) async {
-    try {
-      final authToken = await _getAuthToken();
-      if (authToken == null) {
-        return {
-          'success': false,
-          'message': 'Authentication token not found',
-        };
-      }
-
-      final response = await http.get(
-        Uri.parse('${ApiConfig.getRideById}/$rideId'),
-        headers: {
-          'Authorization': 'Bearer $authToken',
-          'Content-Type': 'application/json',
-        },
-      );
-
-      final responseData = jsonDecode(response.body);
-      return {
-        'success': responseData['success'],
-        'message': responseData['message'],
-        'rideDetails': responseData['rideDetails'],
-      };
-    } catch (error) {
-      return {
-        'success': false,
-        'message': 'Network error: $error',
-      };
-    }
-  }
-
   // Request to join a ride
   static Future<Map<String, dynamic>> requestRide(String rideId) async {
     try {
-      final authToken = await _getAuthToken();
+      final authToken = await AuthService.getAuthToken();
       if (authToken == null) {
         return {
           'success': false,
-          'message': 'Authentication token not found',
+          'message': 'No authentication token found',
         };
       }
 
       final response = await http.post(
         Uri.parse(ApiConfig.requestRide),
         headers: {
-          'Authorization': 'Bearer $authToken',
           'Content-Type': 'application/json',
+          'Authorization': 'Bearer $authToken',
+        },
+        body: jsonEncode({'rideId': rideId}),
+      );
+
+      final responseData = jsonDecode(response.body);
+      return {
+        'success': responseData['success'],
+        'message': responseData['message'],
+      };
+    } catch (error) {
+      return {
+        'success': false,
+        'message': 'Network error: $error',
+      };
+    }
+  }
+
+  // Get user's created rides
+  static Future<Map<String, dynamic>> getUserCreatedRides() async {
+    try {
+      final authToken = await AuthService.getAuthToken();
+      if (authToken == null) {
+        return {
+          'success': false,
+          'message': 'No authentication token found',
+        };
+      }
+
+      final response = await http.get(
+        Uri.parse(ApiConfig.userCreatedRides),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $authToken',
+        },
+      );
+
+      final responseData = jsonDecode(response.body);
+      return {
+        'success': responseData['success'],
+        'message': responseData['message'],
+        'rides': responseData['rides'],
+      };
+    } catch (error) {
+      return {
+        'success': false,
+        'message': 'Network error: $error',
+      };
+    }
+  }
+
+  // Get user's ride requests
+  static Future<Map<String, dynamic>> getUserRideRequests() async {
+    try {
+      final authToken = await AuthService.getAuthToken();
+      if (authToken == null) {
+        return {
+          'success': false,
+          'message': 'No authentication token found',
+        };
+      }
+
+      final response = await http.get(
+        Uri.parse(ApiConfig.userRideRequests),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $authToken',
+        },
+      );
+
+      final responseData = jsonDecode(response.body);
+      return {
+        'success': responseData['success'],
+        'message': responseData['message'],
+        'requests': responseData['requests'],
+      };
+    } catch (error) {
+      return {
+        'success': false,
+        'message': 'Network error: $error',
+      };
+    }
+  }
+
+  // Update ride request status (approve/reject)
+  static Future<Map<String, dynamic>> updateRideRequestStatus(
+      String rideId, String requestId, String status) async {
+    try {
+      final authToken = await AuthService.getAuthToken();
+      if (authToken == null) {
+        return {
+          'success': false,
+          'message': 'No authentication token found',
+        };
+      }
+
+      final response = await http.put(
+        Uri.parse(ApiConfig.updateRideStatus),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $authToken',
         },
         body: jsonEncode({
           'rideId': rideId,
-        }),
-      );
-
-      final responseData = jsonDecode(response.body);
-      return {
-        'success': responseData['success'],
-        'message': responseData['message'],
-        'requestTicket': responseData['requestTicket'],
-      };
-    } catch (error) {
-      return {
-        'success': false,
-        'message': 'Network error: $error',
-      };
-    }
-  }
-
-  // Cancel a ride request
-  static Future<Map<String, dynamic>> cancelRequest(String requestId) async {
-    try {
-      final authToken = await _getAuthToken();
-      if (authToken == null) {
-        return {
-          'success': false,
-          'message': 'Authentication token not found',
-        };
-      }
-
-      final response = await http.post(
-        Uri.parse(ApiConfig.cancelRequest),
-        headers: {
-          'Authorization': 'Bearer $authToken',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'requestId': requestId,
-        }),
-      );
-
-      final responseData = jsonDecode(response.body);
-      return {
-        'success': responseData['success'],
-        'message': responseData['message'],
-      };
-    } catch (error) {
-      return {
-        'success': false,
-        'message': 'Network error: $error',
-      };
-    }
-  }
-
-  // Update ride request status
-  static Future<Map<String, dynamic>> updateRequestStatus(
-    String requestId,
-    String status,
-  ) async {
-    try {
-      final authToken = await _getAuthToken();
-      if (authToken == null) {
-        return {
-          'success': false,
-          'message': 'Authentication token not found',
-        };
-      }
-
-      final response = await http.post(
-        Uri.parse(ApiConfig.updateRideStatus),
-        headers: {
-          'Authorization': 'Bearer $authToken',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
           'requestId': requestId,
           'status': status,
         }),
@@ -246,30 +220,58 @@ class RideService {
     }
   }
 
-  // Update ride details
-  static Future<Map<String, dynamic>> updateRideDetails(
-    String rideId,
-    Map<String, dynamic> updatedDetails,
-  ) async {
+  // Cancel ride request - Fixed: Renamed from cancelRequest to cancelRideRequest
+  static Future<Map<String, dynamic>> cancelRideRequest(String rideId) async {
     try {
-      final authToken = await _getAuthToken();
+      final authToken = await AuthService.getAuthToken();
       if (authToken == null) {
         return {
           'success': false,
-          'message': 'Authentication token not found',
+          'message': 'No authentication token found',
         };
       }
 
-      // Add rideId to the updated details
-      updatedDetails['rideId'] = rideId;
-
-      final response = await http.patch(
-        Uri.parse(ApiConfig.updateRideDetails),
+      final response = await http.delete(
+        Uri.parse(ApiConfig.cancelRequest),
         headers: {
-          'Authorization': 'Bearer $authToken',
           'Content-Type': 'application/json',
+          'Authorization': 'Bearer $authToken',
         },
-        body: jsonEncode(updatedDetails),
+        body: jsonEncode({'rideId': rideId}),
+      );
+
+      final responseData = jsonDecode(response.body);
+      return {
+        'success': responseData['success'],
+        'message': responseData['message'],
+      };
+    } catch (error) {
+      return {
+        'success': false,
+        'message': 'Network error: $error',
+      };
+    }
+  }
+
+  // Update ride details
+  static Future<Map<String, dynamic>> updateRide(
+      String rideId, Map<String, dynamic> rideData) async {
+    try {
+      final authToken = await AuthService.getAuthToken();
+      if (authToken == null) {
+        return {
+          'success': false,
+          'message': 'No authentication token found',
+        };
+      }
+
+      final response = await http.put(
+        Uri.parse('${ApiConfig.updateRideDetails}/$rideId'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $authToken',
+        },
+        body: jsonEncode(rideData),
       );
 
       final responseData = jsonDecode(response.body);
@@ -289,23 +291,20 @@ class RideService {
   // Cancel ride
   static Future<Map<String, dynamic>> cancelRide(String rideId) async {
     try {
-      final authToken = await _getAuthToken();
+      final authToken = await AuthService.getAuthToken();
       if (authToken == null) {
         return {
           'success': false,
-          'message': 'Authentication token not found',
+          'message': 'No authentication token found',
         };
       }
 
-      final response = await http.post(
-        Uri.parse(ApiConfig.cancelRide),
+      final response = await http.delete(
+        Uri.parse('${ApiConfig.cancelRide}/$rideId'),
         headers: {
-          'Authorization': 'Bearer $authToken',
           'Content-Type': 'application/json',
+          'Authorization': 'Bearer $authToken',
         },
-        body: jsonEncode({
-          'rideId': rideId,
-        }),
       );
 
       final responseData = jsonDecode(response.body);
@@ -321,70 +320,5 @@ class RideService {
     }
   }
 
-  // Get rides created by user
-  static Future<Map<String, dynamic>> getUserCreatedRides() async {
-    try {
-      final authToken = await _getAuthToken();
-      if (authToken == null) {
-        return {
-          'success': false,
-          'message': 'Authentication token not found',
-        };
-      }
-
-      final response = await http.get(
-        Uri.parse(ApiConfig.userCreatedRides),
-        headers: {
-          'Authorization': 'Bearer $authToken',
-          'Content-Type': 'application/json',
-        },
-      );
-
-      final responseData = jsonDecode(response.body);
-      return {
-        'success': responseData['success'],
-        'message': responseData['message'],
-        'rides': responseData['rides'],
-      };
-    } catch (error) {
-      return {
-        'success': false,
-        'message': 'Network error: $error',
-      };
-    }
-  }
-
-  // Get user ride requests
-  static Future<Map<String, dynamic>> getUserRideRequests() async {
-    try {
-      final authToken = await _getAuthToken();
-      if (authToken == null) {
-        return {
-          'success': false,
-          'message': 'Authentication token not found',
-        };
-      }
-
-      final response = await http.get(
-        Uri.parse(ApiConfig.userRideRequests),
-        headers: {
-          'Authorization': 'Bearer $authToken',
-          'Content-Type': 'application/json',
-        },
-      );
-
-      final responseData = jsonDecode(response.body);
-      return {
-        'success': responseData['success'],
-        'message': responseData['message'],
-        'requests': responseData['requests'],
-        'user': responseData['user'],
-      };
-    } catch (error) {
-      return {
-        'success': false,
-        'message': 'Network error: $error',
-      };
-    }
-  }
+  static updateRideDetails(rideDetail, Map<String, dynamic> updatedDetails) {}
 }

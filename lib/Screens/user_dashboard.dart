@@ -39,6 +39,7 @@ class UserDashboardState extends State<UserDashboard> {
       MyRequestsPage(
         authToken: widget.authToken,
         updateRideStatusCallback: (String status) {
+          // Refresh the page when a ride status is updated
           setState(() {});
         },
         onSwitchToSearchRide: () => switchToTab(2),
@@ -69,6 +70,7 @@ class UserDashboardState extends State<UserDashboard> {
           IconButton(
             icon: Icon(Icons.refresh),
             onPressed: () {
+              // Refresh the current page
               setState(() {
                 _initializeWidgets();
               });
@@ -124,7 +126,7 @@ class UserDashboardState extends State<UserDashboard> {
               leading: Icon(Icons.account_circle, color: Colors.orange),
               title: Text('My Profile'),
               onTap: () {
-                Navigator.pop(context);
+                Navigator.pop(context); // Close the drawer
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -146,7 +148,7 @@ class UserDashboardState extends State<UserDashboard> {
               leading: Icon(Icons.exit_to_app, color: Colors.red),
               title: Text('Logout'),
               onTap: () {
-                Navigator.pop(context);
+                Navigator.pop(context); // Close the drawer
                 showDialog(
                   context: context,
                   builder: (BuildContext context) {

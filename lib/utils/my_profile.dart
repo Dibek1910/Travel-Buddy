@@ -20,7 +20,15 @@ class _MyProfileState extends State<MyProfile> {
     _fetchUserProfile();
   }
 
+  @override
+  void dispose() {
+    // Cancel any ongoing operations
+    super.dispose();
+  }
+
   Future<void> _fetchUserProfile() async {
+    if (!mounted) return;
+
     setState(() {
       _isLoading = true;
       _errorMessage = '';
@@ -28,6 +36,8 @@ class _MyProfileState extends State<MyProfile> {
 
     try {
       final result = await UserService.getUserProfile();
+
+      if (!mounted) return; // Check if widget is still mounted
 
       if (result['success']) {
         setState(() {
@@ -41,6 +51,8 @@ class _MyProfileState extends State<MyProfile> {
         });
       }
     } catch (error) {
+      if (!mounted) return; // Check if widget is still mounted
+
       setState(() {
         _errorMessage = 'Error fetching profile: $error';
         _isLoading = false;
@@ -54,6 +66,8 @@ class _MyProfileState extends State<MyProfile> {
       appBar: AppBar(
         title: Text('My Profile'),
         centerTitle: true,
+        backgroundColor: Colors.orange,
+        foregroundColor: Colors.white,
       ),
       body: _isLoading
           ? Center(
@@ -75,11 +89,19 @@ class _MyProfileState extends State<MyProfile> {
                       Icon(Icons.error_outline,
                           size: 80, color: Colors.red[300]),
                       SizedBox(height: 16),
-                      Text(_errorMessage, style: TextStyle(color: Colors.red)),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        child: Text(_errorMessage,
+                            style: TextStyle(color: Colors.red),
+                            textAlign: TextAlign.center),
+                      ),
                       SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: _fetchUserProfile,
                         child: Text('Try Again'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange,
+                        ),
                       ),
                     ],
                   ),
@@ -158,6 +180,11 @@ class _MyProfileState extends State<MyProfile> {
                                     Icons.person, 'Full Name', _getFullName()),
                                 _buildProfileRow(Icons.email, 'Email',
                                     userProfile!['email'] ?? 'N/A'),
+                                if (userProfile!['createdAt'] != null)
+                                  _buildProfileRow(
+                                      Icons.calendar_today,
+                                      'Member Since',
+                                      _formatDate(userProfile!['createdAt'])),
                               ],
                             ),
                           ),
@@ -173,6 +200,7 @@ class _MyProfileState extends State<MyProfile> {
                             label: Text('Logout'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.red,
+                              foregroundColor: Colors.white,
                               padding: EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -219,29 +247,28 @@ class _MyProfileState extends State<MyProfile> {
     if (userProfile == null) return 'U';
 
     String firstName = userProfile!['firstName'] ?? '';
-    String lastName = userProfile!['lastName'] ?? '';
 
-    String initials = '';
-    if (firstName.isNotEmpty) initials += firstName[0];
-    if (lastName.isNotEmpty) initials += lastName[0];
+    if (firstName.isNotEmpty) {
+      return firstName[0].toUpperCase();
+    }
 
-    return initials.isNotEmpty ? initials.toUpperCase() : 'U';
+    return 'U';
   }
 
   String _getFullName() {
     if (userProfile == null) return 'User';
 
     String firstName = userProfile!['firstName'] ?? '';
-    String lastName = userProfile!['lastName'] ?? '';
 
-    if (firstName.isNotEmpty && lastName.isNotEmpty) {
-      return '$firstName $lastName';
-    } else if (firstName.isNotEmpty) {
-      return firstName;
-    } else if (lastName.isNotEmpty) {
-      return lastName;
-    } else {
-      return 'User';
+    return firstName.isNotEmpty ? firstName : 'User';
+  }
+
+  String _formatDate(String dateString) {
+    try {
+      final date = DateTime.parse(dateString);
+      return '${date.day}/${date.month}/${date.year}';
+    } catch (e) {
+      return 'Unknown';
     }
   }
 
@@ -270,17 +297,21 @@ class _MyProfileState extends State<MyProfile> {
     if (confirmed == true) {
       try {
         await AuthService.logout();
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          '/home',
-          (Route<dynamic> route) => false,
-        );
+        if (mounted) {
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            '/home',
+            (Route<dynamic> route) => false,
+          );
+        }
       } catch (error) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error logging out: $error'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error logging out: $error'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
   }

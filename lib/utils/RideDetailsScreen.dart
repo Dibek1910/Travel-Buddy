@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:travel_buddy/services/ride_service.dart';
+import 'package:travel_buddy/services/auth_service.dart';
 
 class RideDetailsScreen extends StatefulWidget {
   final dynamic rideDetails;
@@ -14,49 +15,108 @@ class RideDetailsScreen extends StatefulWidget {
 
 class _RideDetailsScreenState extends State<RideDetailsScreen> {
   bool _isLoading = false;
-  late dynamic rideDetails;
+  String? _currentUserId;
 
   @override
   void initState() {
     super.initState();
-    rideDetails = widget.rideDetails;
+    _getCurrentUserId();
+  }
+
+  @override
+  void dispose() {
+    // Cancel any ongoing operations
+    super.dispose();
+  }
+
+  Future<void> _getCurrentUserId() async {
+    try {
+      final userId = await AuthService.getCurrentUserId();
+      if (mounted) {
+        setState(() {
+          _currentUserId = userId;
+        });
+      }
+    } catch (e) {
+      print('Error getting current user ID: $e');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Calculate capacity information
-    final int capacity = rideDetails['capacity'] ?? 0;
-    final List requests = rideDetails['requests'] ?? [];
-    final int approvedRequests =
-        requests.where((req) => req['status'] == 'approved').length;
+    final ride = widget.rideDetails;
+
+    // Safe calculation of capacity information
+    final int capacity = ride['capacity'] ?? 0;
+    final List requests = ride['requests'] ?? [];
+
+    // Safe filtering with proper type checking
+    final int approvedRequests = requests.where((req) {
+      if (req is Map<String, dynamic> &&
+          req.containsKey('status') &&
+          req['status'] is String) {
+        return req['status'] == 'approved';
+      }
+      return false;
+    }).length;
+
+    final int pendingRequests = requests.where((req) {
+      if (req is Map<String, dynamic> &&
+          req.containsKey('status') &&
+          req['status'] is String) {
+        return req['status'] == 'pending';
+      }
+      return false;
+    }).length;
+
     final int availableSeats = capacity - approvedRequests;
     final bool isFull = availableSeats <= 0;
 
-    // Format date
-    String formattedDate = '';
-    if (rideDetails['date'] != null) {
+    // Format date and time
+    String formattedDateTime = '';
+    if (ride['date'] != null) {
       try {
-        final date = DateTime.parse(rideDetails['date']);
-        formattedDate = DateFormat('EEEE, MMM dd, yyyy').format(date);
+        final date = DateTime.parse(ride['date']);
+        formattedDateTime =
+            DateFormat('EEEE, MMM dd, yyyy - HH:mm').format(date);
       } catch (e) {
-        formattedDate = rideDetails['date'];
+        formattedDateTime = ride['date'].toString();
       }
     }
 
     // Host information
-    final host = rideDetails['host'];
-    final hostName = host != null ? host['firstName'] ?? 'Unknown' : 'Unknown';
+    final host = ride['host'];
+    final hostName =
+        host != null ? '${host['firstName'] ?? ''}'.trim() : 'Unknown Host';
+
+    // Check if current user is the host
+    final hostId = host != null ? host['_id'] : null;
+    final isCurrentUserHost =
+        _currentUserId != null && hostId == _currentUserId;
+
+    // Check if current user has already requested this ride
+    final hasUserRequested = requests.any((req) {
+      if (req is Map<String, dynamic> &&
+          req['passenger'] is Map<String, dynamic>) {
+        final passengerId = req['passenger']['_id'];
+        return passengerId == _currentUserId;
+      }
+      return false;
+    });
 
     return Scaffold(
       appBar: AppBar(
         title: Text('Ride Details'),
         centerTitle: true,
+        backgroundColor: Colors.orange,
+        foregroundColor: Colors.white,
+        elevation: 0,
       ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Main ride info card
               Card(
@@ -69,7 +129,7 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Route
+                      // Route header
                       Row(
                         children: [
                           Icon(Icons.location_on,
@@ -77,7 +137,7 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                           SizedBox(width: 12),
                           Expanded(
                             child: Text(
-                              '${rideDetails['from']} → ${rideDetails['to']}',
+                              '${ride['from']} → ${ride['to']}',
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
@@ -110,36 +170,98 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                           ),
                         ],
                       ),
+
                       SizedBox(height: 20),
 
-                      // Date
-                      _buildDetailRow(
-                          Icons.calendar_today, 'Date', formattedDate),
-                      SizedBox(height: 12),
+                      // Date and time
+                      Container(
+                        padding: EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.blue[50],
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.blue[200]!),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.schedule,
+                                color: Colors.blue[700], size: 24),
+                            SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                formattedDateTime,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.blue[800],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
 
-                      // Capacity
-                      _buildDetailRow(
-                          Icons.people, 'Capacity', '$capacity passengers'),
-                      SizedBox(height: 12),
+                      SizedBox(height: 16),
 
-                      // Price (if available)
-                      if (rideDetails['price'] != null)
-                        _buildDetailRow(Icons.currency_rupee, 'Price per seat',
-                            '₹${rideDetails['price']}'),
-                      if (rideDetails['price'] != null) SizedBox(height: 12),
-
-                      // Phone number
-                      if (rideDetails['phoneNo'] != null)
-                        _buildDetailRow(Icons.phone, 'Contact',
-                            '${rideDetails['phoneNo']}'),
-                      if (rideDetails['phoneNo'] != null) SizedBox(height: 12),
+                      // Host information
+                      Container(
+                        padding: EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.orange[50],
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.orange[200]!),
+                        ),
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              backgroundColor: Colors.orange[100],
+                              radius: 25,
+                              child: Text(
+                                hostName.isNotEmpty
+                                    ? hostName[0].toUpperCase()
+                                    : 'H',
+                                style: TextStyle(
+                                  color: Colors.orange,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    isCurrentUserHost
+                                        ? 'Your Ride'
+                                        : 'Hosted by',
+                                    style: TextStyle(
+                                      color: Colors.orange[600],
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  Text(
+                                    hostName,
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.orange[800],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
               ),
+
               SizedBox(height: 16),
 
-              // Host information card
+              // Ride details card
               Card(
                 elevation: 2,
                 shape: RoundedRectangleBorder(
@@ -151,61 +273,59 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Host Information',
+                        'Ride Details',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: Colors.grey[800],
                         ),
                       ),
-                      SizedBox(height: 12),
-                      Row(
-                        children: [
-                          CircleAvatar(
-                            backgroundColor: Colors.orange[100],
-                            radius: 30,
-                            child: Text(
-                              hostName[0].toUpperCase(),
-                              style: TextStyle(
-                                color: Colors.orange,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 20,
-                              ),
+                      SizedBox(height: 16),
+                      _buildDetailRow(Icons.people, 'Total Capacity',
+                          '${ride['capacity']} passengers'),
+                      _buildDetailRow(Icons.people_outline, 'Available Seats',
+                          '$availableSeats seats'),
+                      if (ride['price'] != null)
+                        _buildDetailRow(Icons.attach_money, 'Price per seat',
+                            '₹${ride['price']}'),
+                      if (ride['phoneNo'] != null)
+                        _buildDetailRow(
+                            Icons.phone, 'Contact', '${ride['phoneNo']}'),
+                      if (ride['description'] != null &&
+                          ride['description'].toString().isNotEmpty) ...[
+                        SizedBox(height: 12),
+                        Text(
+                          'Description',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey[700],
+                            fontSize: 16,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[50],
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            ride['description'].toString(),
+                            style: TextStyle(
+                              color: Colors.grey[700],
+                              fontSize: 14,
                             ),
                           ),
-                          SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  hostName,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                if (host != null && host['email'] != null)
-                                  Text(
-                                    host['email'],
-                                    style: TextStyle(
-                                      color: Colors.grey[600],
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
               ),
 
-              // Description (if available)
-              if (rideDetails['description'] != null &&
-                  rideDetails['description'].isNotEmpty) ...[
+              // Request status summary (if there are requests)
+              if (requests.isNotEmpty) ...[
                 SizedBox(height: 16),
                 Card(
                   elevation: 2,
@@ -218,7 +338,7 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Description',
+                          'Request Status',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -226,13 +346,31 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                           ),
                         ),
                         SizedBox(height: 12),
-                        Text(
-                          rideDetails['description'],
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey[700],
-                            height: 1.5,
-                          ),
+                        Row(
+                          children: [
+                            Icon(Icons.people_outline,
+                                color: Colors.blue[600], size: 20),
+                            SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Total Requests: ${requests.length}',
+                                style: TextStyle(
+                                  color: Colors.blue[700],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 8),
+                        Row(
+                          children: [
+                            _buildStatusChip(
+                                'Pending', pendingRequests, Colors.orange),
+                            SizedBox(width: 8),
+                            _buildStatusChip(
+                                'Approved', approvedRequests, Colors.green),
+                          ],
                         ),
                       ],
                     ),
@@ -242,70 +380,118 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
 
               SizedBox(height: 24),
 
-              // Request ride button
-              if (!isFull)
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _requestRide,
-                  style: ElevatedButton.styleFrom(
+              // Action button (only show if user is not the host)
+              if (!isCurrentUserHost) ...[
+                if (hasUserRequested) ...[
+                  // User has already requested
+                  Container(
+                    width: double.infinity,
                     padding: EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
+                    decoration: BoxDecoration(
+                      color: Colors.blue[50],
                       borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.blue[200]!),
                     ),
-                    elevation: 4,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.check_circle, color: Colors.blue[600]),
+                        SizedBox(width: 8),
+                        Text(
+                          'Request Already Sent',
+                          style: TextStyle(
+                            color: Colors.blue[600],
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  child: _isLoading
-                      ? Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            SizedBox(
+                ] else if (!isFull) ...[
+                  // User can request
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: _isLoading
+                          ? null
+                          : () => _requestToJoinRide(ride['_id']),
+                      icon: _isLoading
+                          ? SizedBox(
                               width: 20,
                               height: 20,
                               child: CircularProgressIndicator(
                                 color: Colors.white,
                                 strokeWidth: 2,
                               ),
-                            ),
-                            SizedBox(width: 12),
-                            Text('Sending Request...'),
-                          ],
-                        )
-                      : Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.send),
-                            SizedBox(width: 8),
-                            Text(
-                              'Request to Join',
-                              style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.w600),
-                            ),
-                          ],
+                            )
+                          : Icon(Icons.send),
+                      label: Text(_isLoading
+                          ? 'Sending Request...'
+                          : 'Request to Join'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange,
+                        foregroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                )
-              else
+                        elevation: 4,
+                      ),
+                    ),
+                  ),
+                ] else ...[
+                  // Ride is full
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.block, color: Colors.grey[600]),
+                        SizedBox(width: 8),
+                        Text(
+                          'Ride is Full',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ] else ...[
+                // User is the host
                 Container(
+                  width: double.infinity,
                   padding: EdgeInsets.symmetric(vertical: 16),
                   decoration: BoxDecoration(
-                    color: Colors.red[50],
+                    color: Colors.orange[50],
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.red[200]!),
+                    border: Border.all(color: Colors.orange[200]!),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.block, color: Colors.red[700]),
+                      Icon(Icons.person, color: Colors.orange[600]),
                       SizedBox(width: 8),
                       Text(
-                        'This ride is full',
+                        'This is Your Ride',
                         style: TextStyle(
-                          color: Colors.red[700],
+                          color: Colors.orange[600],
                           fontWeight: FontWeight.w600,
-                          fontSize: 16,
                         ),
                       ),
                     ],
                   ),
                 ),
+              ],
+
+              SizedBox(height: 20),
             ],
           ),
         ),
@@ -314,40 +500,62 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
   }
 
   Widget _buildDetailRow(IconData icon, String label, String value) {
-    return Row(
-      children: [
-        Icon(icon, size: 20, color: Colors.grey[600]),
-        SizedBox(width: 12),
-        Text(
-          '$label: ',
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            color: Colors.grey[700],
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: Colors.grey[600]),
+          SizedBox(width: 12),
+          Text(
+            '$label: ',
             style: TextStyle(
-              color: Colors.grey[800],
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[700],
             ),
           ),
-        ),
-      ],
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                color: Colors.grey[800],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  Future<void> _requestRide() async {
+  Widget _buildStatusChip(String label, int count, MaterialColor color) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color[50],
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color[200]!),
+      ),
+      child: Text(
+        '$label: $count',
+        style: TextStyle(
+          color: color[800],
+          fontWeight: FontWeight.w500,
+          fontSize: 12,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _requestToJoinRide(String rideId) async {
+    if (!mounted) return;
+
     setState(() {
       _isLoading = true;
     });
 
     try {
-      final result = await RideService.requestRide(rideDetails['_id']);
+      final result = await RideService.requestRide(rideId);
 
-      setState(() {
-        _isLoading = false;
-      });
+      if (!mounted) return;
 
       if (result['success']) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -364,8 +572,8 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
           ),
         );
 
-        // Navigate back
-        Navigator.pop(context);
+        // Navigate back after successful request
+        Navigator.of(context).pop();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -382,9 +590,7 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
         );
       }
     } catch (error) {
-      setState(() {
-        _isLoading = false;
-      });
+      if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -392,13 +598,19 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
             children: [
               Icon(Icons.error, color: Colors.white),
               SizedBox(width: 10),
-              Text('Error requesting ride: $error'),
+              Flexible(child: Text('Error sending request: $error')),
             ],
           ),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
         ),
       );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 }

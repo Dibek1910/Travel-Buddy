@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:travel_buddy/services/ride_service.dart';
 import 'package:travel_buddy/services/interest_service.dart';
+import 'package:travel_buddy/services/auth_service.dart';
 import 'package:travel_buddy/utils/RideDetailsScreen.dart';
 import 'package:travel_buddy/widgets/location_autocomplete_field.dart';
 
@@ -24,6 +25,24 @@ class _SearchRidePageState extends State<SearchRidePage> {
   bool _hasSearched = false;
   String _errorMessage = '';
   DateTime? _selectedDate;
+  String? _currentUserId;
+
+  @override
+  void initState() {
+    super.initState();
+    _getCurrentUserId();
+  }
+
+  Future<void> _getCurrentUserId() async {
+    try {
+      final userId = await AuthService.getCurrentUserId();
+      setState(() {
+        _currentUserId = userId;
+      });
+    } catch (e) {
+      print('Error getting current user ID: $e');
+    }
+  }
 
   @override
   void dispose() {
@@ -36,159 +55,163 @@ class _SearchRidePageState extends State<SearchRidePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          // Search Form
-          Card(
-            margin: EdgeInsets.all(16),
-            elevation: 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.search, color: Colors.orange, size: 28),
-                      SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          'Find Your Ride',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey[800],
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Search Form
+            Card(
+              margin: EdgeInsets.all(16),
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.search, color: Colors.orange, size: 28),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            'Find Your Ride',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey[800],
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Search for available rides',
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 16,
+                      ],
                     ),
-                  ),
-                  SizedBox(height: 20),
-                  LocationAutocompleteField(
-                    label: 'From',
-                    controller: _fromController,
-                    onLocationSelected: (location) {
-                      _fromController.text = location;
-                    },
-                  ),
-                  SizedBox(height: 16),
-                  LocationAutocompleteField(
-                    label: 'To',
-                    controller: _toController,
-                    onLocationSelected: (location) {
-                      _toController.text = location;
-                    },
-                  ),
-                  SizedBox(height: 16),
-                  TextField(
-                    controller: _dateController,
-                    decoration: InputDecoration(
-                      labelText: 'Date (Optional)',
-                      prefixIcon:
-                          Icon(Icons.calendar_today, color: Colors.orange),
-                      suffixIcon: _dateController.text.isNotEmpty
-                          ? IconButton(
-                              icon: Icon(Icons.clear),
-                              onPressed: () {
-                                setState(() {
-                                  _dateController.clear();
-                                  _selectedDate = null;
-                                });
-                              },
-                            )
-                          : null,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12.0),
-                        borderSide: BorderSide(color: Colors.orange, width: 2),
+                    SizedBox(height: 8),
+                    Text(
+                      'Search for available rides',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 16,
                       ),
                     ),
-                    readOnly: true,
-                    onTap: _selectDate,
-                  ),
-                  SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: _isLoading ? null : _searchRides,
+                    SizedBox(height: 20),
+                    LocationAutocompleteField(
+                      label: 'From',
+                      controller: _fromController,
+                      onLocationSelected: (location) {
+                        _fromController.text = location;
+                      },
+                    ),
+                    SizedBox(height: 16),
+                    LocationAutocompleteField(
+                      label: 'To',
+                      controller: _toController,
+                      onLocationSelected: (location) {
+                        _toController.text = location;
+                      },
+                    ),
+                    SizedBox(height: 16),
+                    TextField(
+                      controller: _dateController,
+                      decoration: InputDecoration(
+                        labelText: 'Date (Optional)',
+                        prefixIcon:
+                            Icon(Icons.calendar_today, color: Colors.orange),
+                        suffixIcon: _dateController.text.isNotEmpty
+                            ? IconButton(
+                                icon: Icon(Icons.clear),
+                                onPressed: () {
+                                  setState(() {
+                                    _dateController.clear();
+                                    _selectedDate = null;
+                                  });
+                                },
+                              )
+                            : null,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                          borderSide:
+                              BorderSide(color: Colors.orange, width: 2),
+                        ),
+                      ),
+                      readOnly: true,
+                      onTap: _selectDate,
+                    ),
+                    SizedBox(height: 20),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: _isLoading ? null : _searchRides,
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: _isLoading
+                                ? Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2,
+                                        ),
+                                      ),
+                                      SizedBox(width: 12),
+                                      Text('Searching...'),
+                                    ],
+                                  )
+                                : Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.search),
+                                      SizedBox(width: 8),
+                                      Text('Search Rides'),
+                                    ],
+                                  ),
+                          ),
+                        ),
+                        SizedBox(width: 12),
+                        ElevatedButton(
+                          onPressed: _isLoading ? null : _addInterest,
                           style: ElevatedButton.styleFrom(
-                            padding: EdgeInsets.symmetric(vertical: 16),
+                            backgroundColor: Colors.blue,
+                            padding: EdgeInsets.symmetric(
+                                vertical: 16, horizontal: 20),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: _isLoading
-                              ? Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                        color: Colors.white,
-                                        strokeWidth: 2,
-                                      ),
-                                    ),
-                                    SizedBox(width: 12),
-                                    Text('Searching...'),
-                                  ],
-                                )
-                              : Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.search),
-                                    SizedBox(width: 8),
-                                    Text('Search Rides'),
-                                  ],
-                                ),
-                        ),
-                      ),
-                      SizedBox(width: 12),
-                      ElevatedButton(
-                        onPressed: _isLoading ? null : _addInterest,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                          padding: EdgeInsets.symmetric(
-                              vertical: 16, horizontal: 20),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.notifications_active, size: 20),
+                              SizedBox(width: 4),
+                              Text('Notify Me'),
+                            ],
                           ),
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.notifications_active, size: 20),
-                            SizedBox(width: 4),
-                            Text('Notify Me'),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
 
-          // Search Results
-          Expanded(
-            child: _buildSearchResults(),
-          ),
-        ],
+            // Search Results
+            Expanded(
+              child: _buildSearchResults(),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -318,6 +341,7 @@ class _SearchRidePageState extends State<SearchRidePage> {
       itemBuilder: (context, index) {
         return RideSearchItem(
           ride: _searchResults[index],
+          currentUserId: _currentUserId,
           onRideSelected: (ride) {
             Navigator.push(
               context,
@@ -441,21 +465,29 @@ class _SearchRidePageState extends State<SearchRidePage> {
 
 class RideSearchItem extends StatelessWidget {
   final dynamic ride;
+  final String? currentUserId;
   final Function(dynamic) onRideSelected;
 
   const RideSearchItem({
     Key? key,
     required this.ride,
+    required this.currentUserId,
     required this.onRideSelected,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // Calculate available seats
+    // Calculate available seats with safe type checking
     final int capacity = ride['capacity'] ?? 0;
     final List requests = ride['requests'] ?? [];
-    final int approvedRequests =
-        requests.where((req) => req['status'] == 'approved').length;
+
+    final int approvedRequests = requests.where((req) {
+      if (req is Map<String, dynamic> && req['status'] is String) {
+        return req['status'] == 'approved';
+      }
+      return false;
+    }).length;
+
     final int availableSeats = capacity - approvedRequests;
     final bool isFull = availableSeats <= 0;
 
@@ -473,6 +505,10 @@ class RideSearchItem extends StatelessWidget {
     // Host information
     final host = ride['host'];
     final hostName = host != null ? host['firstName'] ?? 'Unknown' : 'Unknown';
+    final hostId = host != null ? host['_id'] : null;
+
+    // FIXED: Check if current user is the host
+    final isCurrentUserHost = currentUserId != null && hostId == currentUserId;
 
     return Card(
       margin: EdgeInsets.only(bottom: 16),
@@ -614,22 +650,49 @@ class RideSearchItem extends StatelessWidget {
 
               SizedBox(height: 12),
 
-              // Action button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: isFull ? null : () => onRideSelected(ride),
-                  icon: Icon(isFull ? Icons.block : Icons.info_outline),
-                  label: Text(isFull ? 'Ride Full' : 'View Details'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: isFull ? Colors.grey : Colors.orange,
-                    padding: EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+              // FIXED: Action button - hide for user's own rides
+              if (isCurrentUserHost) ...[
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange[50],
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.orange[200]!),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.person, color: Colors.orange[600]),
+                      SizedBox(width: 8),
+                      Text(
+                        'Your Ride',
+                        style: TextStyle(
+                          color: Colors.orange[600],
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ] else ...[
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: isFull ? null : () => onRideSelected(ride),
+                    icon: Icon(isFull ? Icons.block : Icons.info_outline),
+                    label:
+                        Text(isFull ? 'Ride Full' : 'View Details & Request'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isFull ? Colors.grey : Colors.orange,
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                   ),
                 ),
-              ),
+              ],
             ],
           ),
         ),

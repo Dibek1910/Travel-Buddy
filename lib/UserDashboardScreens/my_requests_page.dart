@@ -1,18 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:travel_buddy/services/ride_service.dart';
-import 'package:travel_buddy/utils/RideDetailsScreen.dart';
 
 class MyRequestsPage extends StatefulWidget {
   final String authToken;
-  final Function(String) updateRideStatusCallback;
-  final VoidCallback? onSwitchToSearchRide;
+  final Function(String)? updateRideStatusCallback;
 
   const MyRequestsPage({
     Key? key,
     required this.authToken,
-    required this.updateRideStatusCallback,
-    this.onSwitchToSearchRide,
+    this.updateRideStatusCallback, required void Function() onSwitchToSearchRide,
   }) : super(key: key);
 
   @override
@@ -20,17 +17,25 @@ class MyRequestsPage extends StatefulWidget {
 }
 
 class _MyRequestsPageState extends State<MyRequestsPage> {
-  List<dynamic> userRequests = [];
+  List<dynamic> _requests = [];
   bool _isLoading = true;
   String _errorMessage = '';
+  Map<String, bool> _cancellingRequests = {};
 
   @override
   void initState() {
     super.initState();
-    _fetchUserRequests();
+    _loadRequests();
   }
 
-  Future<void> _fetchUserRequests() async {
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  Future<void> _loadRequests() async {
+    if (!mounted) return;
+
     setState(() {
       _isLoading = true;
       _errorMessage = '';
@@ -39,20 +44,24 @@ class _MyRequestsPageState extends State<MyRequestsPage> {
     try {
       final result = await RideService.getUserRideRequests();
 
+      if (!mounted) return;
+
       if (result['success']) {
         setState(() {
-          userRequests = result['requests'] ?? [];
+          _requests = result['requests'] ?? [];
           _isLoading = false;
         });
       } else {
         setState(() {
-          _errorMessage = result['message'];
+          _errorMessage = result['message'] ?? 'Failed to load requests';
           _isLoading = false;
         });
       }
     } catch (error) {
+      if (!mounted) return;
+
       setState(() {
-        _errorMessage = 'Error fetching requests: $error';
+        _errorMessage = 'Error loading requests: $error';
         _isLoading = false;
       });
     }
@@ -61,229 +70,225 @@ class _MyRequestsPageState extends State<MyRequestsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: RefreshIndicator(
-        onRefresh: _fetchUserRequests,
-        color: Colors.orange,
-        child: _isLoading
-            ? Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(color: Colors.orange),
-                    SizedBox(height: 16),
-                    Text('Loading your requests...',
-                        style: TextStyle(color: Colors.grey[600])),
-                  ],
-                ),
-              )
-            : _errorMessage.isNotEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.error_outline,
-                            size: 80, color: Colors.red[300]),
-                        SizedBox(height: 16),
-                        Text(_errorMessage,
-                            style: TextStyle(color: Colors.red)),
-                        SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: _fetchUserRequests,
-                          child: Text('Try Again'),
+      appBar: AppBar(
+        title: Text('My Requests'),
+        centerTitle: true,
+        backgroundColor: Colors.orange,
+        foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.refresh),
+            onPressed: _loadRequests,
+          ),
+        ],
+      ),
+      body: _isLoading
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(color: Colors.orange),
+                  SizedBox(height: 16),
+                  Text('Loading your requests...',
+                      style: TextStyle(color: Colors.grey[600])),
+                ],
+              ),
+            )
+          : _errorMessage.isNotEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.error_outline,
+                          size: 80, color: Colors.red[300]),
+                      SizedBox(height: 16),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        child: Text(_errorMessage,
+                            style: TextStyle(color: Colors.red),
+                            textAlign: TextAlign.center),
+                      ),
+                      SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _loadRequests,
+                        child: Text('Try Again'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange,
                         ),
-                      ],
-                    ),
-                  )
-                : userRequests.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.request_page_outlined,
-                              size: 80,
-                              color: Colors.grey[400],
+                      ),
+                    ],
+                  ),
+                )
+              : _requests.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.person_outline,
+                            size: 80,
+                            color: Colors.grey[400],
+                          ),
+                          SizedBox(height: 16),
+                          Text(
+                            'No ride requests yet',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.grey[600],
+                              fontWeight: FontWeight.w500,
                             ),
-                            SizedBox(height: 16),
-                            Text(
-                              'No ride requests',
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: Colors.grey[600],
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            SizedBox(height: 8),
-                            Text(
+                          ),
+                          SizedBox(height: 8),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 20),
+                            child: Text(
                               'Search for rides and send requests to join',
                               style: TextStyle(
                                 color: Colors.grey[500],
                               ),
+                              textAlign: TextAlign.center,
                             ),
-                            SizedBox(height: 20),
-                            ElevatedButton.icon(
-                              onPressed: widget.onSwitchToSearchRide,
-                              icon: Icon(Icons.search),
-                              label: Text('Search Rides'),
-                            ),
-                          ],
-                        ),
-                      )
-                    : ListView.builder(
+                          ),
+                        ],
+                      ),
+                    )
+                  : RefreshIndicator(
+                      onRefresh: _loadRequests,
+                      color: Colors.orange,
+                      child: ListView.builder(
                         padding: EdgeInsets.all(16),
-                        itemCount: userRequests.length,
+                        itemCount: _requests.length,
                         itemBuilder: (context, index) {
                           return RequestItem(
-                            request: userRequests[index],
-                            onRequestCancelled: _cancelRequest,
-                            onViewRideDetails: _viewRideDetails,
+                            request: _requests[index],
+                            isCancelling:
+                                _cancellingRequests[_requests[index]['_id']] ??
+                                    false,
+                            onCancel: () =>
+                                _cancelRequest(_requests[index]['_id']),
                           );
                         },
                       ),
-      ),
+                    ),
     );
   }
 
   Future<void> _cancelRequest(String requestId) async {
-    // Show confirmation dialog
-    final bool? confirmed = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Cancel Request'),
-          content: Text('Are you sure you want to cancel this ride request?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text('No'),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              child: Text('Yes, Cancel'),
-            ),
-          ],
-        );
-      },
-    );
+    if (!mounted) return;
 
-    if (confirmed == true) {
-      try {
-        final result = await RideService.cancelRequest(requestId);
+    setState(() {
+      _cancellingRequests[requestId] = true;
+    });
 
-        if (result['success']) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  Icon(Icons.check_circle, color: Colors.white),
-                  SizedBox(width: 10),
-                  Text('Request cancelled successfully'),
-                ],
-              ),
-              backgroundColor: Colors.green,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-          _fetchUserRequests(); // Refresh the list
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  Icon(Icons.error, color: Colors.white),
-                  SizedBox(width: 10),
-                  Expanded(child: Text(result['message'])),
-                ],
-              ),
-              backgroundColor: Colors.red,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+    try {
+      final result = await RideService.cancelRideRequest(requestId);
+
+      if (!mounted) return;
+
+      if (result['success']) {
+        setState(() {
+          _requests.removeWhere((req) => req['_id'] == requestId);
+          _cancellingRequests.remove(requestId);
+        });
+
+        // Call the callback if provided
+        if (widget.updateRideStatusCallback != null) {
+          widget.updateRideStatusCallback!('cancelled');
         }
-      } catch (error) {
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
               children: [
-                Icon(Icons.error, color: Colors.white),
+                Icon(Icons.check_circle, color: Colors.white),
                 SizedBox(width: 10),
-                Text('Error cancelling request: $error'),
+                Text('Request cancelled successfully'),
               ],
             ),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } else {
+        setState(() {
+          _cancellingRequests[requestId] = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? 'Failed to cancel request'),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
           ),
         );
       }
-    }
-  }
+    } catch (error) {
+      if (!mounted) return;
 
-  void _viewRideDetails(dynamic ride) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => RideDetailsScreen(
-          rideDetails: ride,
+      setState(() {
+        _cancellingRequests[requestId] = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error cancelling request: $error'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
         ),
-      ),
-    );
+      );
+    }
   }
 }
 
 class RequestItem extends StatelessWidget {
   final dynamic request;
-  final Function(String) onRequestCancelled;
-  final Function(dynamic) onViewRideDetails;
+  final bool isCancelling;
+  final VoidCallback onCancel;
 
   const RequestItem({
     Key? key,
     required this.request,
-    required this.onRequestCancelled,
-    required this.onViewRideDetails,
+    required this.isCancelling,
+    required this.onCancel,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final ride = request['ride'];
-    final String status = request['status'] ?? 'pending';
+    final status = request['status'] ?? 'pending';
 
     // Format date
     String formattedDate = '';
-    if (request['createdAt'] != null) {
+    if (ride != null && ride['date'] != null) {
       try {
-        final date = DateTime.parse(request['createdAt']);
-        formattedDate = DateFormat('MMM dd, yyyy').format(date);
+        final date = DateTime.parse(ride['date']);
+        formattedDate = DateFormat('MMM dd, yyyy - HH:mm').format(date);
       } catch (e) {
-        formattedDate = request['createdAt'];
+        formattedDate = ride['date'].toString();
       }
     }
 
-    // Status color and text
+    // Status styling
     Color statusColor;
-    String statusText;
     IconData statusIcon;
+    String statusText;
 
-    switch (status.toLowerCase()) {
+    switch (status) {
       case 'approved':
         statusColor = Colors.green;
-        statusText = 'APPROVED';
         statusIcon = Icons.check_circle;
+        statusText = 'Approved';
         break;
       case 'rejected':
         statusColor = Colors.red;
-        statusText = 'REJECTED';
         statusIcon = Icons.cancel;
+        statusText = 'Rejected';
         break;
       default:
         statusColor = Colors.orange;
-        statusText = 'PENDING';
-        statusIcon = Icons.schedule;
+        statusIcon = Icons.pending;
+        statusText = 'Pending';
     }
-
-    // Host information
-    final host = ride['host'];
-    final hostName = host != null ? host['firstName'] ?? 'Unknown' : 'Unknown';
 
     return Card(
       margin: EdgeInsets.only(bottom: 16),
@@ -296,7 +301,7 @@ class RequestItem extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header with route and status
+            // Route and status header
             Row(
               children: [
                 Icon(Icons.location_on, color: Colors.orange, size: 24),
@@ -308,20 +313,20 @@ class RequestItem extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                // Status badge
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: statusColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: statusColor),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(statusIcon, size: 16, color: statusColor),
+                      Icon(statusIcon, size: 14, color: statusColor),
                       SizedBox(width: 4),
                       Text(
                         statusText,
@@ -339,159 +344,103 @@ class RequestItem extends StatelessWidget {
 
             SizedBox(height: 12),
 
-            // Host and request info
+            // Date and host info
             Container(
               padding: EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: Colors.grey[50],
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Row(
+              child: Column(
                 children: [
-                  CircleAvatar(
-                    backgroundColor: Colors.orange[100],
-                    radius: 20,
-                    child: Text(
-                      hostName[0].toUpperCase(),
-                      style: TextStyle(
-                        color: Colors.orange,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Host: $hostName',
+                  Row(
+                    children: [
+                      Icon(Icons.schedule, color: Colors.blue[600], size: 20),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          formattedDate,
                           style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
+                            color: Colors.blue[700],
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
+                      ),
+                    ],
+                  ),
+                  if (ride['host'] != null) ...[
+                    SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Icon(Icons.person, color: Colors.orange[600], size: 20),
+                        SizedBox(width: 8),
                         Text(
-                          'Requested on: $formattedDate',
+                          'Host: ${ride['host']['firstName'] ?? 'Unknown'}',
                           style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 13,
+                            color: Colors.orange[700],
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
                     ),
-                  ),
-                  if (ride['price'] != null)
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.green[50],
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.green[200]!),
-                      ),
-                      child: Text(
-                        '₹${ride['price']}',
-                        style: TextStyle(
-                          color: Colors.green[800],
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
+                  ],
                 ],
               ),
             ),
 
-            SizedBox(height: 12),
-
-            // Action buttons
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => onViewRideDetails(ride),
-                    icon: Icon(Icons.info_outline, size: 18),
-                    label: Text('View Details'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.blue,
-                      side: BorderSide(color: Colors.blue),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  ),
-                ),
-                if (status.toLowerCase() == 'pending') ...[
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () => onRequestCancelled(request['_id']),
-                      icon: Icon(Icons.cancel, size: 18),
-                      label: Text('Cancel'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-
-            // Status message
-            if (status.toLowerCase() == 'approved') ...[
-              SizedBox(height: 12),
+            if (ride['price'] != null) ...[
+              SizedBox(height: 8),
               Container(
-                width: double.infinity,
-                padding: EdgeInsets.all(12),
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: Colors.green[50],
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: Colors.green[200]!),
                 ),
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.check_circle,
-                        color: Colors.green[700], size: 20),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Your request has been approved! Contact the host for pickup details.',
-                        style: TextStyle(
-                          color: Colors.green[800],
-                          fontWeight: FontWeight.w500,
-                        ),
+                    Icon(Icons.attach_money,
+                        color: Colors.green[600], size: 16),
+                    Text(
+                      '₹${ride['price']}',
+                      style: TextStyle(
+                        color: Colors.green[700],
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
                 ),
               ),
-            ] else if (status.toLowerCase() == 'rejected') ...[
+            ],
+
+            // Cancel button for pending requests
+            if (status == 'pending') ...[
               SizedBox(height: 12),
-              Container(
+              SizedBox(
                 width: double.infinity,
-                padding: EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.red[50],
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.red[200]!),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.cancel, color: Colors.red[700], size: 20),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Your request was not approved. Try searching for other rides.',
-                        style: TextStyle(
-                          color: Colors.red[800],
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
+                child: ElevatedButton.icon(
+                  onPressed: isCancelling ? null : onCancel,
+                  icon: isCancelling
+                      ? SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Icon(Icons.cancel, size: 18),
+                  label:
+                      Text(isCancelling ? 'Cancelling...' : 'Cancel Request'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                  ],
+                  ),
                 ),
               ),
             ],
