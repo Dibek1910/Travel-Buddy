@@ -13,47 +13,83 @@ class HomeScreen extends StatelessWidget {
         children: [
           Expanded(
             flex: 2,
-            child: Image.asset(
-              'assets/muj.jpg',
-              fit: BoxFit.cover,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.orange.shade400,
+                    Colors.orange.shade600,
+                  ],
+                ),
+              ),
+              child: SafeArea(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.directions_car,
+                      size: 100,
+                      color: Colors.white,
+                    ),
+                    SizedBox(height: 20),
+                    Text(
+                      'Travel Buddy',
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Text(
+                      'Your Carpooling Companion',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white.withOpacity(0.9),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
           Expanded(
             flex: 3,
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(24.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Carpool App',
+                    'Welcome to Travel Buddy',
                     style: TextStyle(
                       fontSize: 28.0,
                       fontWeight: FontWeight.bold,
-                      color: Colors.orange,
+                      color: Colors.grey[800],
                     ),
                   ),
                   const SizedBox(height: 10.0),
                   Text(
                     'Travel Together, Save Together',
                     style: TextStyle(
-                      color: Colors.grey[700],
+                      color: Colors.orange,
                       fontSize: 18.0,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 20.0),
                   Text(
-                    'This platform provides an easy and accessible way to pool vehicles and find co-passengers for your journey.',
+                    'Join our community of travelers and make your journeys more affordable, eco-friendly, and social. Share rides, split costs, and meet new people along the way.',
                     style: TextStyle(
                       fontSize: 16.0,
                       color: Colors.grey[600],
+                      height: 1.5,
                     ),
                   ),
-                  const SizedBox(height: 30.0),
+                  const SizedBox(height: 40.0),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Expanded(
                         child: ElevatedButton(
@@ -66,14 +102,16 @@ class HomeScreen extends StatelessWidget {
                             );
                           },
                           style: ElevatedButton.styleFrom(
-                            padding: EdgeInsets.symmetric(vertical: 12),
+                            padding: EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(12),
                             ),
+                            elevation: 2,
                           ),
                           child: Text(
                             'Login',
-                            style: TextStyle(fontSize: 16),
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.w600),
                           ),
                         ),
                       ),
@@ -89,10 +127,10 @@ class HomeScreen extends StatelessWidget {
                             );
                           },
                           style: OutlinedButton.styleFrom(
-                            padding: EdgeInsets.symmetric(vertical: 12),
-                            side: BorderSide(color: Colors.orange),
+                            padding: EdgeInsets.symmetric(vertical: 16),
+                            side: BorderSide(color: Colors.orange, width: 2),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(12),
                             ),
                           ),
                           child: Text(
@@ -100,11 +138,22 @@ class HomeScreen extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 16,
                               color: Colors.orange,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 20.0),
+                  Center(
+                    child: Text(
+                      '🌱 Eco-friendly • 💰 Cost-effective • 👥 Social',
+                      style: TextStyle(
+                        color: Colors.grey[500],
+                        fontSize: 14,
+                      ),
+                    ),
                   ),
                 ],
               ),

@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:travel_buddy/config/api_config.dart';
 
 class AuthService {
-  // Login user
+  // Login user with email and password
   static Future<Map<String, dynamic>> login(
       String email, String password) async {
     try {
@@ -21,31 +21,19 @@ class AuthService {
 
       if (response.statusCode == 200 && responseData['success']) {
         final authToken = responseData['token'];
+        final userName = responseData['user'];
         final prefs = await SharedPreferences.getInstance();
 
         await prefs.setString('authToken', authToken);
         await prefs.setString('authorization', 'Bearer $authToken');
-
-        // Save user data if available
-        if (responseData['user'] != null) {
-          await prefs.setString('userId', responseData['user']['id']);
-          await prefs.setString('userEmail', responseData['user']['email']);
-          await prefs.setString(
-              'userFirstName', responseData['user']['firstName']);
-          await prefs.setString(
-              'userLastName', responseData['user']['lastName']);
-          // Save phone number if available
-          if (responseData['user']['phoneNumber'] != null) {
-            await prefs.setString(
-                'userPhoneNumber', responseData['user']['phoneNumber']);
-          }
-        }
+        await prefs.setString('userEmail', email);
+        await prefs.setString('userName', userName);
 
         return {
           'success': true,
           'message': responseData['message'],
           'token': authToken,
-          'user': responseData['user'],
+          'user': userName,
         };
       } else {
         return {
@@ -61,13 +49,11 @@ class AuthService {
     }
   }
 
-  // Register user
+  // Register user with firstName, email, and password
   static Future<Map<String, dynamic>> register(
     String firstName,
-    String lastName,
     String email,
     String password,
-    String phoneNumber, // Added phone number parameter
   ) async {
     try {
       final response = await http.post(
@@ -75,10 +61,8 @@ class AuthService {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'firstName': firstName,
-          'lastName': lastName,
           'email': email,
           'password': password,
-          'phoneNumber': phoneNumber, // Include phone number in request
         }),
       );
 
@@ -88,6 +72,85 @@ class AuthService {
         'success': responseData['success'],
         'message': responseData['message'],
         'user': responseData['user'],
+      };
+    } catch (error) {
+      return {
+        'success': false,
+        'message': 'Network error: $error',
+      };
+    }
+  }
+
+  // Send OTP for password reset
+  static Future<Map<String, dynamic>> sendOtp(String email) async {
+    try {
+      final response = await http.post(
+        Uri.parse(ApiConfig.sendOtp),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+        }),
+      );
+
+      final responseData = jsonDecode(response.body);
+
+      return {
+        'success': responseData['success'],
+        'message': responseData['message'],
+      };
+    } catch (error) {
+      return {
+        'success': false,
+        'message': 'Network error: $error',
+      };
+    }
+  }
+
+  // Verify OTP
+  static Future<Map<String, dynamic>> verifyOtp(
+      String email, String otp) async {
+    try {
+      final response = await http.post(
+        Uri.parse(ApiConfig.verifyOtp),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'otp': otp,
+        }),
+      );
+
+      final responseData = jsonDecode(response.body);
+
+      return {
+        'success': responseData['success'],
+        'message': responseData['message'],
+      };
+    } catch (error) {
+      return {
+        'success': false,
+        'message': 'Network error: $error',
+      };
+    }
+  }
+
+  // Update password
+  static Future<Map<String, dynamic>> updatePassword(
+      String email, String password) async {
+    try {
+      final response = await http.post(
+        Uri.parse(ApiConfig.updatePassword),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'password': password,
+        }),
+      );
+
+      final responseData = jsonDecode(response.body);
+
+      return {
+        'success': responseData['success'],
+        'message': responseData['message'],
       };
     } catch (error) {
       return {
@@ -123,20 +186,24 @@ class AuthService {
       // Clear stored preferences regardless of server response
       await prefs.remove('authToken');
       await prefs.remove('authorization');
-      await prefs.remove('userId');
       await prefs.remove('userEmail');
-      await prefs.remove('userFirstName');
-      await prefs.remove('userLastName');
-      await prefs.remove('userPhoneNumber');
+      await prefs.remove('userName');
 
       return {
         'success': true,
         'message': responseData['message'] ?? 'Logged out successfully',
       };
     } catch (error) {
+      // Clear preferences even if network call fails
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('authToken');
+      await prefs.remove('authorization');
+      await prefs.remove('userEmail');
+      await prefs.remove('userName');
+
       return {
-        'success': false,
-        'message': 'Network error: $error',
+        'success': true,
+        'message': 'Logged out successfully',
       };
     }
   }
@@ -151,5 +218,17 @@ class AuthService {
   static Future<bool> isLoggedIn() async {
     final token = await getAuthToken();
     return token != null;
+  }
+
+  // Get user name
+  static Future<String?> getUserName() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('userName');
+  }
+
+  // Get user email
+  static Future<String?> getUserEmail() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('userEmail');
   }
 }

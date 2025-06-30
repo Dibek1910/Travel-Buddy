@@ -4,8 +4,8 @@ import 'package:travel_buddy/UserDashboardScreens/create_ride_page.dart';
 import 'package:travel_buddy/UserDashboardScreens/my_requests_page.dart';
 import 'package:travel_buddy/UserDashboardScreens/my_rides_page.dart';
 import 'package:travel_buddy/UserDashboardScreens/search_ride_page.dart';
-import 'package:travel_buddy/utils/RideHistoryPage.dart';
 import 'package:travel_buddy/utils/my_profile.dart';
+import 'package:travel_buddy/services/auth_service.dart';
 
 class UserDashboard extends StatefulWidget {
   final String authToken;
@@ -13,52 +13,64 @@ class UserDashboard extends StatefulWidget {
   const UserDashboard({Key? key, required this.authToken}) : super(key: key);
 
   @override
-  _UserDashboardState createState() => _UserDashboardState();
+  UserDashboardState createState() => UserDashboardState();
 }
 
-class _UserDashboardState extends State<UserDashboard> {
+class UserDashboardState extends State<UserDashboard> {
   int _selectedIndex = 0;
   late List<Widget> _widgetOptions;
+  String? _userName;
 
   @override
   void initState() {
     super.initState();
+    _initializeWidgets();
+    _loadUserName();
+  }
+
+  void _initializeWidgets() {
     _widgetOptions = [
-      MyRidesPage(authToken: widget.authToken),
+      MyRidesPage(
+        authToken: widget.authToken,
+        onSwitchToCreateRide: () => switchToTab(1),
+      ),
       CreateRidePage(authToken: widget.authToken),
       SearchRidePage(authToken: widget.authToken),
       MyRequestsPage(
         authToken: widget.authToken,
         updateRideStatusCallback: (String status) {
-          // Refresh the page when a ride status is updated
           setState(() {});
         },
+        onSwitchToSearchRide: () => switchToTab(2),
       ),
     ];
+  }
+
+  Future<void> _loadUserName() async {
+    final userName = await AuthService.getUserName();
+    setState(() {
+      _userName = userName;
+    });
+  }
+
+  void switchToTab(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Carpool Dashboard'),
+        title: Text('Travel Buddy'),
+        centerTitle: true,
         actions: [
           IconButton(
             icon: Icon(Icons.refresh),
             onPressed: () {
-              // Refresh the current page
               setState(() {
-                _widgetOptions = [
-                  MyRidesPage(authToken: widget.authToken),
-                  CreateRidePage(authToken: widget.authToken),
-                  SearchRidePage(authToken: widget.authToken),
-                  MyRequestsPage(
-                    authToken: widget.authToken,
-                    updateRideStatusCallback: (String status) {
-                      setState(() {});
-                    },
-                  ),
-                ];
+                _initializeWidgets();
               });
             },
           ),
@@ -70,28 +82,39 @@ class _UserDashboardState extends State<UserDashboard> {
           children: <Widget>[
             DrawerHeader(
               decoration: BoxDecoration(
-                color: Colors.orange,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Colors.orange.shade400, Colors.orange.shade600],
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   CircleAvatar(
-                    radius: 40,
+                    radius: 30,
                     backgroundColor: Colors.white,
                     child: Icon(
                       Icons.person,
-                      size: 40,
+                      size: 35,
                       color: Colors.orange,
                     ),
                   ),
                   SizedBox(height: 10),
                   Text(
-                    'Carpool App',
+                    'Welcome, ${_userName ?? 'User'}',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 20,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    'Your Carpooling Companion',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.9),
+                      fontSize: 14,
                     ),
                   ),
                 ],
@@ -101,7 +124,7 @@ class _UserDashboardState extends State<UserDashboard> {
               leading: Icon(Icons.account_circle, color: Colors.orange),
               title: Text('My Profile'),
               onTap: () {
-                Navigator.pop(context); // Close the drawer
+                Navigator.pop(context);
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -110,27 +133,20 @@ class _UserDashboardState extends State<UserDashboard> {
                 );
               },
             ),
+            Divider(),
             ListTile(
-              leading: Icon(Icons.history, color: Colors.orange),
-              title: Text('Ride History'),
+              leading: Icon(Icons.info_outline, color: Colors.grey),
+              title: Text('About'),
               onTap: () {
-                Navigator.pop(context); // Close the drawer
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => RideHistoryPage(
-                      authToken: widget.authToken,
-                    ),
-                  ),
-                );
+                Navigator.pop(context);
+                _showAboutDialog();
               },
             ),
-            Divider(),
             ListTile(
               leading: Icon(Icons.exit_to_app, color: Colors.red),
               title: Text('Logout'),
               onTap: () {
-                Navigator.pop(context); // Close the drawer
+                Navigator.pop(context);
                 showDialog(
                   context: context,
                   builder: (BuildContext context) {
@@ -166,14 +182,37 @@ class _UserDashboardState extends State<UserDashboard> {
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.orange,
         unselectedItemColor: Colors.grey,
-        onTap: _onItemTapped,
+        onTap: switchToTab,
       ),
     );
   }
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+  void _showAboutDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('About Travel Buddy'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Travel Buddy - Your Carpooling Companion'),
+              SizedBox(height: 10),
+              Text('Version: 1.0.0'),
+              SizedBox(height: 10),
+              Text(
+                  'A platform to share rides, reduce costs, and make travel more sustainable.'),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

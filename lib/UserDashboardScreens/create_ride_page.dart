@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:travel_buddy/services/ride_service.dart';
+import 'package:travel_buddy/widgets/location_autocomplete_field.dart';
 
 class CreateRidePage extends StatefulWidget {
   final String authToken;
@@ -13,25 +13,29 @@ class CreateRidePage extends StatefulWidget {
 }
 
 class _CreateRidePageState extends State<CreateRidePage> {
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController _fromController = TextEditingController();
   final TextEditingController _toController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
-  final TextEditingController _timeController =
-      TextEditingController(); // Added time controller
+  final TextEditingController _timeController = TextEditingController();
   final TextEditingController _capacityController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
 
   bool _isLoading = false;
   String _message = '';
+  DateTime? _selectedDate;
+  TimeOfDay? _selectedTime;
 
   @override
   void dispose() {
     _fromController.dispose();
     _toController.dispose();
     _dateController.dispose();
-    _timeController.dispose(); // Dispose time controller
+    _timeController.dispose();
     _capacityController.dispose();
+    _phoneController.dispose();
     _priceController.dispose();
     _descriptionController.dispose();
     super.dispose();
@@ -43,137 +47,346 @@ class _CreateRidePageState extends State<CreateRidePage> {
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Card(
-                elevation: 4.0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.add_circle,
+                                color: Colors.orange, size: 28),
+                            SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                'Create New Ride',
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey[800],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Share your journey and help others travel',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 16,
+                          ),
+                        ),
+                        if (_message.isNotEmpty) ...[
+                          SizedBox(height: 16),
+                          Container(
+                            padding: EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: _message.contains('success')
+                                  ? Colors.green[50]
+                                  : Colors.red[50],
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: _message.contains('success')
+                                    ? Colors.green
+                                    : Colors.red,
+                              ),
+                            ),
+                            child: Text(
+                              _message,
+                              style: TextStyle(
+                                color: _message.contains('success')
+                                    ? Colors.green[800]
+                                    : Colors.red[800],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Create a New Ride',
-                        style: TextStyle(
-                          fontSize: 20.0,
-                          fontWeight: FontWeight.bold,
+                SizedBox(height: 20),
+
+                // Route Information
+                Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Route Information',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[800],
+                          ),
                         ),
-                      ),
-                      SizedBox(height: 8.0),
-                      Text(
-                        'Fill in the details to create a new ride',
-                        style: TextStyle(
-                          color: Colors.grey[600],
+                        SizedBox(height: 16),
+                        LocationAutocompleteField(
+                          label: 'From',
+                          controller: _fromController,
+                          onLocationSelected: (location) {
+                            _fromController.text = location;
+                          },
                         ),
-                      ),
-                      if (_message.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: Text(
-                            _message,
-                            style: TextStyle(
-                              color: _message.contains('successfully')
-                                  ? Colors.green
-                                  : Colors.red,
+                        SizedBox(height: 16),
+                        LocationAutocompleteField(
+                          label: 'To',
+                          controller: _toController,
+                          onLocationSelected: (location) {
+                            _toController.text = location;
+                          },
+                        ),
+                        SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                controller: _dateController,
+                                decoration: InputDecoration(
+                                  labelText: 'Date',
+                                  prefixIcon: Icon(Icons.calendar_today,
+                                      color: Colors.orange),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12.0),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12.0),
+                                    borderSide: BorderSide(
+                                        color: Colors.orange, width: 2),
+                                  ),
+                                ),
+                                readOnly: true,
+                                onTap: _selectDate,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please select a date';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                            SizedBox(width: 16),
+                            Expanded(
+                              child: TextFormField(
+                                controller: _timeController,
+                                decoration: InputDecoration(
+                                  labelText: 'Time',
+                                  prefixIcon: Icon(Icons.access_time,
+                                      color: Colors.orange),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12.0),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12.0),
+                                    borderSide: BorderSide(
+                                        color: Colors.orange, width: 2),
+                                  ),
+                                ),
+                                readOnly: true,
+                                onTap: _selectTime,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Please select a time';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(height: 16),
+
+                // Ride Details
+                Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Ride Details',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[800],
+                          ),
+                        ),
+                        SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                controller: _capacityController,
+                                keyboardType: TextInputType.number,
+                                decoration: InputDecoration(
+                                  labelText: 'Capacity',
+                                  prefixIcon:
+                                      Icon(Icons.people, color: Colors.orange),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12.0),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12.0),
+                                    borderSide: BorderSide(
+                                        color: Colors.orange, width: 2),
+                                  ),
+                                ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Required';
+                                  }
+                                  final capacity = int.tryParse(value);
+                                  if (capacity == null ||
+                                      capacity < 1 ||
+                                      capacity > 8) {
+                                    return 'Enter 1-8';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                            SizedBox(width: 16),
+                            Expanded(
+                              child: TextFormField(
+                                controller: _phoneController,
+                                keyboardType: TextInputType.phone,
+                                decoration: InputDecoration(
+                                  labelText: 'Phone Number',
+                                  prefixIcon:
+                                      Icon(Icons.phone, color: Colors.orange),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12.0),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12.0),
+                                    borderSide: BorderSide(
+                                        color: Colors.orange, width: 2),
+                                  ),
+                                ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Required';
+                                  }
+                                  if (value.length < 10) {
+                                    return 'Invalid';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 16),
+                        TextFormField(
+                          controller: _priceController,
+                          keyboardType:
+                              TextInputType.numberWithOptions(decimal: true),
+                          decoration: InputDecoration(
+                            labelText: 'Price per seat (₹) - Optional',
+                            prefixIcon: Icon(Icons.currency_rupee,
+                                color: Colors.orange),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                              borderSide:
+                                  BorderSide(color: Colors.orange, width: 2),
                             ),
                           ),
                         ),
-                      SizedBox(height: 16.0),
-                      _buildTextField('From', _fromController),
-                      SizedBox(height: 16.0),
-                      _buildTextField('To', _toController),
-                      SizedBox(height: 16.0),
-                      _buildDateInputField('Date', _dateController),
-                      SizedBox(height: 16.0),
-                      _buildTimeInputField(
-                          'Time', _timeController), // Added time input field
-                      SizedBox(height: 16.0),
-                      _buildTextField(
-                        'Capacity',
-                        _capacityController,
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly
-                        ],
-                      ),
-                      SizedBox(height: 16.0),
-                      _buildTextField(
-                        'Price',
-                        _priceController,
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(
-                              RegExp(r'^\d+\.?\d{0,2}')),
-                        ],
-                      ),
-                      SizedBox(height: 16.0),
-                      _buildTextField(
-                        'Description',
-                        _descriptionController,
-                        maxLines: 3,
-                      ),
-                      SizedBox(height: 24.0),
-                      ElevatedButton(
-                        onPressed: _isLoading ? null : _createRide,
-                        style: ElevatedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                        SizedBox(height: 16),
+                        TextFormField(
+                          controller: _descriptionController,
+                          maxLines: 3,
+                          decoration: InputDecoration(
+                            labelText: 'Description (Optional)',
+                            prefixIcon:
+                                Icon(Icons.description, color: Colors.orange),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                              borderSide:
+                                  BorderSide(color: Colors.orange, width: 2),
+                            ),
+                            hintText:
+                                'Add any additional information about your ride...',
                           ),
-                          minimumSize: Size(double.infinity, 48),
                         ),
-                        child: _isLoading
-                            ? CircularProgressIndicator(color: Colors.white)
-                            : Text('Create Ride',
-                                style: TextStyle(fontSize: 16)),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+                SizedBox(height: 24),
 
-  Widget _buildTextField(
-    String label,
-    TextEditingController controller, {
-    TextInputType keyboardType = TextInputType.text,
-    List<TextInputFormatter>? inputFormatters,
-    int maxLines = 1,
-  }) {
-    return TextField(
-      controller: controller,
-      keyboardType: keyboardType,
-      inputFormatters: inputFormatters,
-      maxLines: maxLines,
-      decoration: InputDecoration(
-        labelText: label,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDateInputField(String label, TextEditingController controller) {
-    return GestureDetector(
-      onTap: () => _selectDate(context, controller),
-      child: AbsorbPointer(
-        child: TextField(
-          controller: controller,
-          decoration: InputDecoration(
-            labelText: label,
-            suffixIcon: Icon(Icons.calendar_today),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8.0),
+                // Create Ride Button
+                ElevatedButton(
+                  onPressed: _isLoading ? null : _createRide,
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 4,
+                  ),
+                  child: _isLoading
+                      ? Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            ),
+                            SizedBox(width: 12),
+                            Text('Creating Ride...'),
+                          ],
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.add_circle_outline),
+                            SizedBox(width: 8),
+                            Text(
+                              'Create Ride',
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.w600),
+                            ),
+                          ],
+                        ),
+                ),
+                SizedBox(height: 20),
+              ],
             ),
           ),
         ),
@@ -181,63 +394,70 @@ class _CreateRidePageState extends State<CreateRidePage> {
     );
   }
 
-  Widget _buildTimeInputField(String label, TextEditingController controller) {
-    return GestureDetector(
-      onTap: () => _selectTime(context, controller),
-      child: AbsorbPointer(
-        child: TextField(
-          controller: controller,
-          decoration: InputDecoration(
-            labelText: label,
-            suffixIcon: Icon(Icons.access_time),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _selectDate(
-      BuildContext context, TextEditingController controller) async {
-    final DateTime? pickedDate = await showDatePicker(
+  Future<void> _selectDate() async {
+    final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
       firstDate: DateTime.now(),
-      lastDate: DateTime(2101),
+      lastDate: DateTime.now().add(Duration(days: 365)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: Colors.orange,
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: Colors.black,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
 
-    if (pickedDate != null) {
+    if (picked != null && picked != _selectedDate) {
       setState(() {
-        controller.text = DateFormat('yyyy-MM-dd').format(pickedDate);
+        _selectedDate = picked;
+        _dateController.text = DateFormat('yyyy-MM-dd').format(picked);
       });
     }
   }
 
-  Future<void> _selectTime(
-      BuildContext context, TextEditingController controller) async {
-    final TimeOfDay? pickedTime = await showTimePicker(
+  Future<void> _selectTime() async {
+    final TimeOfDay? picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: Colors.orange,
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: Colors.black,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
 
-    if (pickedTime != null) {
+    if (picked != null && picked != _selectedTime) {
       setState(() {
-        controller.text = pickedTime.format(context);
+        _selectedTime = picked;
+        _timeController.text = picked.format(context);
       });
     }
   }
 
   Future<void> _createRide() async {
-    // Validate inputs
-    if (_fromController.text.isEmpty ||
-        _toController.text.isEmpty ||
-        _dateController.text.isEmpty ||
-        _timeController.text.isEmpty || // Validate time
-        _capacityController.text.isEmpty) {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
+    if (_fromController.text.isEmpty || _toController.text.isEmpty) {
       setState(() {
-        _message = 'Please fill all required fields';
+        _message = 'Please select both pickup and destination locations';
       });
       return;
     }
@@ -248,13 +468,28 @@ class _CreateRidePageState extends State<CreateRidePage> {
     });
 
     try {
+      final capacity = int.parse(_capacityController.text);
+      final phoneNo = int.parse(_phoneController.text);
+      final price = _priceController.text.isNotEmpty
+          ? double.parse(_priceController.text)
+          : null;
+
+      // Combine date and time
+      final dateTime = DateTime(
+        _selectedDate!.year,
+        _selectedDate!.month,
+        _selectedDate!.day,
+        _selectedTime!.hour,
+        _selectedTime!.minute,
+      );
+
       final result = await RideService.createRide(
         _fromController.text,
         _toController.text,
-        _dateController.text,
-        _timeController.text, // Pass time
-        int.parse(_capacityController.text),
-        _priceController.text.isEmpty ? 0 : double.parse(_priceController.text),
+        dateTime.toIso8601String(),
+        capacity,
+        phoneNo,
+        price,
         _descriptionController.text,
       );
 
@@ -264,20 +499,30 @@ class _CreateRidePageState extends State<CreateRidePage> {
       });
 
       if (result['success']) {
-        // Clear form fields
+        // Clear form
+        _formKey.currentState!.reset();
         _fromController.clear();
         _toController.clear();
         _dateController.clear();
-        _timeController.clear(); // Clear time
+        _timeController.clear();
         _capacityController.clear();
+        _phoneController.clear();
         _priceController.clear();
         _descriptionController.clear();
+        _selectedDate = null;
+        _selectedTime = null;
 
-        // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Ride created successfully!'),
+            content: Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white),
+                SizedBox(width: 10),
+                Text('Ride created successfully!'),
+              ],
+            ),
             backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
           ),
         );
       }
@@ -286,14 +531,6 @@ class _CreateRidePageState extends State<CreateRidePage> {
         _isLoading = false;
         _message = 'Error creating ride: $error';
       });
-
-      // Show error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to create ride. Please try again.'),
-          backgroundColor: Colors.red,
-        ),
-      );
     }
   }
 }

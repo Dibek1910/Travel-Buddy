@@ -7,7 +7,13 @@ class LogoutDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Logout'),
+      title: Row(
+        children: [
+          Icon(Icons.logout, color: Colors.red),
+          SizedBox(width: 10),
+          Text('Logout'),
+        ],
+      ),
       content: Text('Are you sure you want to logout?'),
       actions: <Widget>[
         TextButton(
@@ -35,7 +41,7 @@ class LogoutDialog extends StatelessWidget {
         // Navigate to login screen and clear navigation stack
         Navigator.pushNamedAndRemoveUntil(
           context,
-          '/login',
+          '/home',
           (route) => false,
         );
       } else {

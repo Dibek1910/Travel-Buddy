@@ -15,9 +15,9 @@ class RideService {
     String from,
     String to,
     String date,
-    String time, // Added time parameter
     int capacity,
-    dynamic price,
+    int phoneNo,
+    double? price,
     String description,
   ) async {
     try {
@@ -39,8 +39,8 @@ class RideService {
           'from': from,
           'to': to,
           'date': date,
-          'time': time, // Include time in request
           'capacity': capacity,
+          'phoneNo': phoneNo,
           'price': price,
           'description': description,
         }),
@@ -62,9 +62,9 @@ class RideService {
 
   // Search for rides
   static Future<Map<String, dynamic>> searchRides(
-    String from,
-    String to,
-    String date,
+    String? from,
+    String? to,
+    String? date,
   ) async {
     try {
       final authToken = await _getAuthToken();
@@ -75,17 +75,18 @@ class RideService {
         };
       }
 
+      final body = <String, dynamic>{};
+      if (from != null && from.isNotEmpty) body['from'] = from;
+      if (to != null && to.isNotEmpty) body['to'] = to;
+      if (date != null && date.isNotEmpty) body['date'] = date;
+
       final response = await http.post(
         Uri.parse(ApiConfig.searchRides),
         headers: {
           'Authorization': 'Bearer $authToken',
           'Content-Type': 'application/json',
         },
-        body: jsonEncode({
-          'from': from,
-          'to': to,
-          'date': date,
-        }),
+        body: jsonEncode(body),
       );
 
       final responseData = jsonDecode(response.body);
@@ -285,8 +286,8 @@ class RideService {
     }
   }
 
-  // Get user ride history
-  static Future<Map<String, dynamic>> getUserRideHistory() async {
+  // Cancel ride
+  static Future<Map<String, dynamic>> cancelRide(String rideId) async {
     try {
       final authToken = await _getAuthToken();
       if (authToken == null) {
@@ -296,19 +297,21 @@ class RideService {
         };
       }
 
-      final response = await http.get(
-        Uri.parse(ApiConfig.userRideHistory),
+      final response = await http.post(
+        Uri.parse(ApiConfig.cancelRide),
         headers: {
           'Authorization': 'Bearer $authToken',
           'Content-Type': 'application/json',
         },
+        body: jsonEncode({
+          'rideId': rideId,
+        }),
       );
 
       final responseData = jsonDecode(response.body);
       return {
         'success': responseData['success'],
         'message': responseData['message'],
-        'rides': responseData['rides'],
       };
     } catch (error) {
       return {

@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:travel_buddy/services/ride_service.dart';
+import 'package:travel_buddy/widgets/location_autocomplete_field.dart';
 
 class UpdateRideDetailsPage extends StatefulWidget {
-  final dynamic ride;
-  final VoidCallback? onRideUpdated;
+  final dynamic rideDetails;
+  final VoidCallback onRideUpdated;
 
   const UpdateRideDetailsPage({
     Key? key,
-    required this.ride,
-    this.onRideUpdated,
+    required this.rideDetails,
+    required this.onRideUpdated,
   }) : super(key: key);
 
   @override
@@ -18,30 +18,43 @@ class UpdateRideDetailsPage extends StatefulWidget {
 }
 
 class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController _fromController = TextEditingController();
   final TextEditingController _toController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
-  final TextEditingController _timeController =
-      TextEditingController(); // Added time controller
   final TextEditingController _capacityController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
 
   bool _isLoading = false;
   String _message = '';
+  DateTime? _selectedDate;
 
   @override
   void initState() {
     super.initState();
-    // Initialize controllers with existing ride details
-    _fromController.text = widget.ride['from'] ?? '';
-    _toController.text = widget.ride['to'] ?? '';
-    _dateController.text = widget.ride['date'] ?? '';
-    _timeController.text =
-        widget.ride['time'] ?? ''; // Initialize time controller
-    _capacityController.text = widget.ride['capacity']?.toString() ?? '';
-    _priceController.text = widget.ride['price']?.toString() ?? '';
-    _descriptionController.text = widget.ride['description'] ?? '';
+    _populateFields();
+  }
+
+  void _populateFields() {
+    final ride = widget.rideDetails;
+
+    _fromController.text = ride['from'] ?? '';
+    _toController.text = ride['to'] ?? '';
+    _capacityController.text = ride['capacity']?.toString() ?? '';
+    _phoneController.text = ride['phoneNo']?.toString() ?? '';
+    _priceController.text = ride['price']?.toString() ?? '';
+    _descriptionController.text = ride['description'] ?? '';
+
+    if (ride['date'] != null) {
+      try {
+        _selectedDate = DateTime.parse(ride['date']);
+        _dateController.text = DateFormat('yyyy-MM-dd').format(_selectedDate!);
+      } catch (e) {
+        _dateController.text = ride['date'];
+      }
+    }
   }
 
   @override
@@ -49,8 +62,8 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
     _fromController.dispose();
     _toController.dispose();
     _dateController.dispose();
-    _timeController.dispose(); // Dispose time controller
     _capacityController.dispose();
+    _phoneController.dispose();
     _priceController.dispose();
     _descriptionController.dispose();
     super.dispose();
@@ -60,180 +73,316 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Update Ride Details'),
+        title: Text('Update Ride'),
+        centerTitle: true,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Edit Ride Information',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      'Update the details of your ride',
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                    if (_message.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8.0),
-                        child: Text(
-                          _message,
-                          style: TextStyle(
-                            color: _message.contains('successfully')
-                                ? Colors.green
-                                : Colors.red,
-                          ),
-                        ),
-                      ),
-                    SizedBox(height: 16),
-                    _buildTextField('From', _fromController),
-                    SizedBox(height: 16),
-                    _buildTextField('To', _toController),
-                    SizedBox(height: 16),
-                    _buildDateInputField('Date', _dateController),
-                    SizedBox(height: 16),
-                    _buildTimeInputField(
-                        'Time', _timeController), // Added time input field
-                    SizedBox(height: 16),
-                    _buildTextField(
-                      'Capacity',
-                      _capacityController,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    ),
-                    SizedBox(height: 16),
-                    _buildTextField(
-                      'Price',
-                      _priceController,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(
-                            RegExp(r'^\d+\.?\d{0,2}')),
-                      ],
-                    ),
-                    SizedBox(height: 16),
-                    _buildTextField(
-                      'Description',
-                      _descriptionController,
-                      maxLines: 3,
-                    ),
-                    SizedBox(height: 24),
-                    Row(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () => Navigator.pop(context),
-                            style: OutlinedButton.styleFrom(
-                              padding: EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                        Row(
+                          children: [
+                            Icon(Icons.edit, color: Colors.orange, size: 28),
+                            SizedBox(width: 12),
+                            Text(
+                              'Update Ride Details',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey[800],
                               ),
                             ),
-                            child: Text('Cancel'),
+                          ],
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Modify your ride information',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 16,
                           ),
                         ),
-                        SizedBox(width: 16),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: _isLoading ? null : _updateRideDetails,
-                            style: ElevatedButton.styleFrom(
-                              padding: EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                        if (_message.isNotEmpty) ...[
+                          SizedBox(height: 16),
+                          Container(
+                            padding: EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: _message.contains('success')
+                                  ? Colors.green[50]
+                                  : Colors.red[50],
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: _message.contains('success')
+                                    ? Colors.green
+                                    : Colors.red,
                               ),
                             ),
-                            child: _isLoading
-                                ? SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.white,
-                                    ),
-                                  )
-                                : Text('Update Ride'),
+                            child: Text(
+                              _message,
+                              style: TextStyle(
+                                color: _message.contains('success')
+                                    ? Colors.green[800]
+                                    : Colors.red[800],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(height: 20),
+
+                // Route Information
+                Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Route Information',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[800],
+                          ),
+                        ),
+                        SizedBox(height: 16),
+                        LocationAutocompleteField(
+                          label: 'From',
+                          controller: _fromController,
+                          onLocationSelected: (location) {
+                            _fromController.text = location;
+                          },
+                        ),
+                        SizedBox(height: 16),
+                        LocationAutocompleteField(
+                          label: 'To',
+                          controller: _toController,
+                          onLocationSelected: (location) {
+                            _toController.text = location;
+                          },
+                        ),
+                        SizedBox(height: 16),
+                        TextFormField(
+                          controller: _dateController,
+                          decoration: InputDecoration(
+                            labelText: 'Date',
+                            prefixIcon: Icon(Icons.calendar_today,
+                                color: Colors.orange),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                              borderSide:
+                                  BorderSide(color: Colors.orange, width: 2),
+                            ),
+                          ),
+                          readOnly: true,
+                          onTap: _selectDate,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please select a date';
+                            }
+                            return null;
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(height: 16),
+
+                // Ride Details
+                Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Ride Details',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[800],
+                          ),
+                        ),
+                        SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextFormField(
+                                controller: _capacityController,
+                                keyboardType: TextInputType.number,
+                                decoration: InputDecoration(
+                                  labelText: 'Capacity',
+                                  prefixIcon:
+                                      Icon(Icons.people, color: Colors.orange),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12.0),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12.0),
+                                    borderSide: BorderSide(
+                                        color: Colors.orange, width: 2),
+                                  ),
+                                ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Required';
+                                  }
+                                  final capacity = int.tryParse(value);
+                                  if (capacity == null ||
+                                      capacity < 1 ||
+                                      capacity > 8) {
+                                    return 'Enter 1-8';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                            SizedBox(width: 16),
+                            Expanded(
+                              child: TextFormField(
+                                controller: _phoneController,
+                                keyboardType: TextInputType.phone,
+                                decoration: InputDecoration(
+                                  labelText: 'Phone Number',
+                                  prefixIcon:
+                                      Icon(Icons.phone, color: Colors.orange),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12.0),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12.0),
+                                    borderSide: BorderSide(
+                                        color: Colors.orange, width: 2),
+                                  ),
+                                ),
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Required';
+                                  }
+                                  if (value.length < 10) {
+                                    return 'Invalid';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 16),
+                        TextFormField(
+                          controller: _priceController,
+                          keyboardType:
+                              TextInputType.numberWithOptions(decimal: true),
+                          decoration: InputDecoration(
+                            labelText: 'Price per seat (₹) - Optional',
+                            prefixIcon: Icon(Icons.currency_rupee,
+                                color: Colors.orange),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                              borderSide:
+                                  BorderSide(color: Colors.orange, width: 2),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 16),
+                        TextFormField(
+                          controller: _descriptionController,
+                          maxLines: 3,
+                          decoration: InputDecoration(
+                            labelText: 'Description (Optional)',
+                            prefixIcon:
+                                Icon(Icons.description, color: Colors.orange),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                              borderSide:
+                                  BorderSide(color: Colors.orange, width: 2),
+                            ),
+                            hintText:
+                                'Add any additional information about your ride...',
                           ),
                         ),
                       ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+                SizedBox(height: 24),
 
-  Widget _buildTextField(
-    String label,
-    TextEditingController controller, {
-    TextInputType keyboardType = TextInputType.text,
-    List<TextInputFormatter>? inputFormatters,
-    int maxLines = 1,
-  }) {
-    return TextField(
-      controller: controller,
-      keyboardType: keyboardType,
-      inputFormatters: inputFormatters,
-      maxLines: maxLines,
-      decoration: InputDecoration(
-        labelText: label,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDateInputField(String label, TextEditingController controller) {
-    return GestureDetector(
-      onTap: () => _selectDate(context, controller),
-      child: AbsorbPointer(
-        child: TextField(
-          controller: controller,
-          decoration: InputDecoration(
-            labelText: label,
-            suffixIcon: Icon(Icons.calendar_today),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTimeInputField(String label, TextEditingController controller) {
-    return GestureDetector(
-      onTap: () => _selectTime(context, controller),
-      child: AbsorbPointer(
-        child: TextField(
-          controller: controller,
-          decoration: InputDecoration(
-            labelText: label,
-            suffixIcon: Icon(Icons.access_time),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8.0),
+                // Update Ride Button
+                ElevatedButton(
+                  onPressed: _isLoading ? null : _updateRide,
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 4,
+                  ),
+                  child: _isLoading
+                      ? Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            ),
+                            SizedBox(width: 12),
+                            Text('Updating Ride...'),
+                          ],
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.update),
+                            SizedBox(width: 8),
+                            Text(
+                              'Update Ride',
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.w600),
+                            ),
+                          ],
+                        ),
+                ),
+                SizedBox(height: 20),
+              ],
             ),
           ),
         ),
@@ -241,44 +390,43 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
     );
   }
 
-  Future<void> _selectDate(
-      BuildContext context, TextEditingController controller) async {
-    final DateTime? pickedDate = await showDatePicker(
+  Future<void> _selectDate() async {
+    final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
+      initialDate: _selectedDate ?? DateTime.now(),
       firstDate: DateTime.now(),
-      lastDate: DateTime(2101),
+      lastDate: DateTime.now().add(Duration(days: 365)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: Colors.orange,
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: Colors.black,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
 
-    if (pickedDate != null) {
+    if (picked != null && picked != _selectedDate) {
       setState(() {
-        controller.text = DateFormat('yyyy-MM-dd').format(pickedDate);
+        _selectedDate = picked;
+        _dateController.text = DateFormat('yyyy-MM-dd').format(picked);
       });
     }
   }
 
-  Future<void> _selectTime(
-      BuildContext context, TextEditingController controller) async {
-    final TimeOfDay? pickedTime = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-    );
-
-    if (pickedTime != null) {
-      setState(() {
-        controller.text = pickedTime.format(context);
-      });
+  Future<void> _updateRide() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
     }
-  }
 
-  Future<void> _updateRideDetails() async {
-    // Validate inputs
-    if (_fromController.text.isEmpty ||
-        _toController.text.isEmpty ||
-        _dateController.text.isEmpty ||
-        _capacityController.text.isEmpty) {
+    if (_fromController.text.isEmpty || _toController.text.isEmpty) {
       setState(() {
-        _message = 'Please fill all required fields';
+        _message = 'Please select both pickup and destination locations';
       });
       return;
     }
@@ -289,20 +437,27 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
     });
 
     try {
+      final capacity = int.parse(_capacityController.text);
+      final phoneNo = int.parse(_phoneController.text);
+      final price = _priceController.text.isNotEmpty
+          ? double.parse(_priceController.text)
+          : null;
+
       final updatedDetails = {
         'from': _fromController.text,
         'to': _toController.text,
         'date': _dateController.text,
-        'time': _timeController.text, // Include time in updated details
-        'capacity': int.parse(_capacityController.text),
-        'price': _priceController.text.isEmpty
-            ? 0
-            : double.parse(_priceController.text),
+        'capacity': capacity,
+        'phoneNo': phoneNo,
         'description': _descriptionController.text,
       };
 
+      if (price != null) {
+        updatedDetails['price'] = price;
+      }
+
       final result = await RideService.updateRideDetails(
-        widget.ride['_id'],
+        widget.rideDetails['_id'],
         updatedDetails,
       );
 
@@ -312,37 +467,30 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
       });
 
       if (result['success']) {
-        // Show success message
+        widget.onRideUpdated();
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Ride updated successfully!'),
+            content: Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white),
+                SizedBox(width: 10),
+                Text('Ride updated successfully!'),
+              ],
+            ),
             backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
           ),
         );
 
-        // Call the callback if provided
-        if (widget.onRideUpdated != null) {
-          widget.onRideUpdated!();
-        }
-
-        // Navigate back after a short delay
-        Future.delayed(Duration(seconds: 1), () {
-          Navigator.pop(context);
-        });
+        // Navigate back
+        Navigator.pop(context);
       }
     } catch (error) {
       setState(() {
         _isLoading = false;
         _message = 'Error updating ride: $error';
       });
-
-      // Show error message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to update ride. Please try again.'),
-          backgroundColor: Colors.red,
-        ),
-      );
     }
   }
 }
