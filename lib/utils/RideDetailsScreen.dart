@@ -25,7 +25,6 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
 
   @override
   void dispose() {
-    // Cancel any ongoing operations
     super.dispose();
   }
 
@@ -46,11 +45,9 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
   Widget build(BuildContext context) {
     final ride = widget.rideDetails;
 
-    // Safe calculation of capacity information
     final int capacity = ride['capacity'] ?? 0;
     final List requests = ride['requests'] ?? [];
 
-    // Safe filtering with proper type checking
     final int approvedRequests = requests.where((req) {
       if (req is Map<String, dynamic> &&
           req.containsKey('status') &&
@@ -72,7 +69,6 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
     final int availableSeats = capacity - approvedRequests;
     final bool isFull = availableSeats <= 0;
 
-    // Format date and time
     String formattedDateTime = '';
     if (ride['date'] != null) {
       try {
@@ -84,17 +80,14 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
       }
     }
 
-    // Host information
     final host = ride['host'];
     final hostName =
         host != null ? '${host['firstName'] ?? ''}'.trim() : 'Unknown Host';
 
-    // Check if current user is the host
     final hostId = host != null ? host['_id'] : null;
     final isCurrentUserHost =
         _currentUserId != null && hostId == _currentUserId;
 
-    // Check if current user has already requested this ride
     final hasUserRequested = requests.any((req) {
       if (req is Map<String, dynamic> &&
           req['passenger'] is Map<String, dynamic>) {
@@ -118,7 +111,6 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Main ride info card
               Card(
                 elevation: 4,
                 shape: RoundedRectangleBorder(
@@ -129,7 +121,6 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Route header
                       Row(
                         children: [
                           Icon(Icons.location_on,
@@ -145,7 +136,6 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                               ),
                             ),
                           ),
-                          // Availability badge
                           Container(
                             padding: EdgeInsets.symmetric(
                                 horizontal: 12, vertical: 6),
@@ -170,10 +160,7 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                           ),
                         ],
                       ),
-
                       SizedBox(height: 20),
-
-                      // Date and time
                       Container(
                         padding: EdgeInsets.all(16),
                         decoration: BoxDecoration(
@@ -199,10 +186,7 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                           ],
                         ),
                       ),
-
                       SizedBox(height: 16),
-
-                      // Host information
                       Container(
                         padding: EdgeInsets.all(16),
                         decoration: BoxDecoration(
@@ -258,10 +242,7 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                   ),
                 ),
               ),
-
               SizedBox(height: 16),
-
-              // Ride details card
               Card(
                 elevation: 2,
                 shape: RoundedRectangleBorder(
@@ -323,8 +304,6 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                   ),
                 ),
               ),
-
-              // Request status summary (if there are requests)
               if (requests.isNotEmpty) ...[
                 SizedBox(height: 16),
                 Card(
@@ -377,13 +356,9 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                   ),
                 ),
               ],
-
               SizedBox(height: 24),
-
-              // Action button (only show if user is not the host)
               if (!isCurrentUserHost) ...[
                 if (hasUserRequested) ...[
-                  // User has already requested
                   Container(
                     width: double.infinity,
                     padding: EdgeInsets.symmetric(vertical: 16),
@@ -408,7 +383,6 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                     ),
                   ),
                 ] else if (!isFull) ...[
-                  // User can request
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
@@ -440,7 +414,6 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                     ),
                   ),
                 ] else ...[
-                  // Ride is full
                   Container(
                     width: double.infinity,
                     padding: EdgeInsets.symmetric(vertical: 16),
@@ -465,7 +438,6 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                   ),
                 ],
               ] else ...[
-                // User is the host
                 Container(
                   width: double.infinity,
                   padding: EdgeInsets.symmetric(vertical: 16),
@@ -490,7 +462,6 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                   ),
                 ),
               ],
-
               SizedBox(height: 20),
             ],
           ),
@@ -572,7 +543,6 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
           ),
         );
 
-        // Navigate back after successful request
         Navigator.of(context).pop();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(

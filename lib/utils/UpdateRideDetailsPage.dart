@@ -49,7 +49,6 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
     _priceController.text = ride['price']?.toString() ?? '';
     _descriptionController.text = ride['description'] ?? '';
 
-    // Parse date and time
     if (ride['date'] != null) {
       try {
         final dateTime = DateTime.parse(ride['date']);
@@ -156,8 +155,6 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
                   ),
                 ),
                 SizedBox(height: 20),
-
-                // Route Information
                 Card(
                   elevation: 2,
                   shape: RoundedRectangleBorder(
@@ -257,8 +254,6 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
                   ),
                 ),
                 SizedBox(height: 16),
-
-                // Ride Details
                 Card(
                   elevation: 2,
                   shape: RoundedRectangleBorder(
@@ -386,8 +381,6 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
                   ),
                 ),
                 SizedBox(height: 24),
-
-                // Update Button
                 ElevatedButton(
                   onPressed: _isLoading ? null : _updateRide,
                   style: ElevatedButton.styleFrom(
@@ -508,7 +501,6 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
           ? double.parse(_priceController.text)
           : null;
 
-      // Combine date and time
       DateTime? dateTime;
       if (_selectedDate != null && _selectedTime != null) {
         dateTime = DateTime(
@@ -522,7 +514,6 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
 
       final updatedDetails = <String, dynamic>{};
 
-      // Only include changed fields
       if (_fromController.text != widget.rideDetails['from']) {
         updatedDetails['from'] = _fromController.text;
       }
@@ -578,7 +569,6 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
           ),
         );
 
-        // Notify parent and go back
         widget.onRideUpdated();
         Navigator.pop(context);
       }

@@ -5,7 +5,6 @@ import 'package:travel_buddy/config/api_config.dart';
 class GoogleMapsService {
   static const String _baseUrl = 'https://maps.googleapis.com/maps/api';
 
-  // Get place predictions for autocomplete
   static Future<List<PlacePrediction>> getPlacePredictions(String input) async {
     if (input.isEmpty) return [];
 
@@ -14,7 +13,7 @@ class GoogleMapsService {
           '?input=${Uri.encodeComponent(input)}'
           '&key=${ApiConfig.googleMapsApiKey}'
           '&types=geocode'
-          '&components=country:in'; // Restrict to India
+          '&components=country:in';
 
       final response = await http.get(Uri.parse(url));
       final data = jsonDecode(response.body);
@@ -32,7 +31,6 @@ class GoogleMapsService {
     }
   }
 
-  // Get place details by place ID
   static Future<PlaceDetails?> getPlaceDetails(String placeId) async {
     try {
       final url = '$_baseUrl/place/details/json'
@@ -53,7 +51,6 @@ class GoogleMapsService {
     }
   }
 
-  // Geocode an address to get coordinates
   static Future<LatLng?> geocodeAddress(String address) async {
     try {
       final url = '$_baseUrl/geocode/json'
@@ -74,7 +71,6 @@ class GoogleMapsService {
     }
   }
 
-  // Get directions between two points
   static Future<DirectionsResult?> getDirections(
     LatLng origin,
     LatLng destination,

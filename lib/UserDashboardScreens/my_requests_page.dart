@@ -5,11 +5,13 @@ import 'package:travel_buddy/services/ride_service.dart';
 class MyRequestsPage extends StatefulWidget {
   final String authToken;
   final Function(String)? updateRideStatusCallback;
+  final VoidCallback onSwitchToSearchRide;
 
   const MyRequestsPage({
     Key? key,
     required this.authToken,
-    this.updateRideStatusCallback, required void Function() onSwitchToSearchRide,
+    this.updateRideStatusCallback,
+    required this.onSwitchToSearchRide,
   }) : super(key: key);
 
   @override
@@ -149,6 +151,16 @@ class _MyRequestsPageState extends State<MyRequestsPage> {
                               textAlign: TextAlign.center,
                             ),
                           ),
+                          SizedBox(height: 20),
+                          ElevatedButton.icon(
+                            onPressed: widget.onSwitchToSearchRide,
+                            icon: Icon(Icons.search),
+                            label: Text('Search Rides'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.orange,
+                              foregroundColor: Colors.white,
+                            ),
+                          ),
                         ],
                       ),
                     )
@@ -191,7 +203,6 @@ class _MyRequestsPageState extends State<MyRequestsPage> {
           _cancellingRequests.remove(requestId);
         });
 
-        // Call the callback if provided
         if (widget.updateRideStatusCallback != null) {
           widget.updateRideStatusCallback!('cancelled');
         }
@@ -257,7 +268,6 @@ class RequestItem extends StatelessWidget {
     final ride = request['ride'];
     final status = request['status'] ?? 'pending';
 
-    // Format date
     String formattedDate = '';
     if (ride != null && ride['date'] != null) {
       try {
@@ -268,7 +278,6 @@ class RequestItem extends StatelessWidget {
       }
     }
 
-    // Status styling
     Color statusColor;
     IconData statusIcon;
     String statusText;
@@ -301,7 +310,6 @@ class RequestItem extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Route and status header
             Row(
               children: [
                 Icon(Icons.location_on, color: Colors.orange, size: 24),
@@ -341,10 +349,7 @@ class RequestItem extends StatelessWidget {
                 ),
               ],
             ),
-
             SizedBox(height: 12),
-
-            // Date and host info
             Container(
               padding: EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -387,7 +392,6 @@ class RequestItem extends StatelessWidget {
                 ],
               ),
             ),
-
             if (ride['price'] != null) ...[
               SizedBox(height: 8),
               Container(
@@ -413,8 +417,6 @@ class RequestItem extends StatelessWidget {
                 ),
               ),
             ],
-
-            // Cancel button for pending requests
             if (status == 'pending') ...[
               SizedBox(height: 12),
               SizedBox(

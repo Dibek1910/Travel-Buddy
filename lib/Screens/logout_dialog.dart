@@ -16,13 +16,13 @@ class LogoutDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () {
-            Navigator.of(context).pop(); // Close dialog
+            Navigator.of(context).pop();
           },
           child: Text('Cancel'),
         ),
         ElevatedButton(
           onPressed: () async {
-            Navigator.of(context).pop(); // Close dialog first
+            Navigator.of(context).pop();
             await _performLogout(context);
           },
           style: ElevatedButton.styleFrom(
@@ -36,7 +36,6 @@ class LogoutDialog extends StatelessWidget {
 
   Future<void> _performLogout(BuildContext context) async {
     try {
-      // Show loading indicator
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -49,17 +48,14 @@ class LogoutDialog extends StatelessWidget {
 
       final result = await AuthService.logout();
 
-      // Close loading dialog
       Navigator.of(context).pop();
 
       if (result['success']) {
-        // Navigate to home/login screen
         Navigator.of(context).pushNamedAndRemoveUntil(
           '/home',
           (Route<dynamic> route) => false,
         );
 
-        // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
@@ -74,7 +70,6 @@ class LogoutDialog extends StatelessWidget {
           ),
         );
       } else {
-        // Show error message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
@@ -90,7 +85,6 @@ class LogoutDialog extends StatelessWidget {
         );
       }
     } catch (error) {
-      // Close loading dialog if still open
       Navigator.of(context).pop();
 
       ScaffoldMessenger.of(context).showSnackBar(

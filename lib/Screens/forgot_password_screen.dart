@@ -15,7 +15,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   bool _isLoading = false;
   String _message = 'Enter your email to receive an OTP';
-  int _currentStep = 0; // 0: email, 1: otp, 2: password
+  int _currentStep = 0;
 
   @override
   void dispose() {
@@ -311,7 +311,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           ),
         );
 
-        // Navigate back to login
         Navigator.pop(context);
       }
     } catch (error) {

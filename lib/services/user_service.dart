@@ -4,7 +4,6 @@ import 'package:travel_buddy/config/api_config.dart';
 import 'package:travel_buddy/services/auth_service.dart';
 
 class UserService {
-  // Get user profile
   static Future<Map<String, dynamic>> getUserProfile() async {
     try {
       final authToken = await AuthService.getAuthToken();
@@ -44,7 +43,6 @@ class UserService {
     }
   }
 
-  // Update user profile
   static Future<Map<String, dynamic>> updateUserProfile(
       Map<String, dynamic> profileData) async {
     try {

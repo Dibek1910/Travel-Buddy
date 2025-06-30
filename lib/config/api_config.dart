@@ -1,7 +1,5 @@
 class ApiConfig {
   static const String baseUrl = 'https://travelbuddy.sdcmuj.com';
-
-  // Auth endpoints
   static const String login = '$baseUrl/api/auth/login';
   static const String register = '$baseUrl/api/auth/register';
   static const String logout = '$baseUrl/api/auth/logout';
@@ -10,11 +8,7 @@ class ApiConfig {
       '$baseUrl/api/auth/forgot-password/verify-otp';
   static const String updatePassword =
       '$baseUrl/api/auth/forgot-password/update-password';
-
-  // User endpoints - FIXED: Correct endpoint for user profile
   static const String userProfile = '$baseUrl/api/user/profile';
-
-  // Ride endpoints
   static const String createRide = '$baseUrl/api/rides/create';
   static const String searchRides = '$baseUrl/api/rides/search';
   static const String getRideById = '$baseUrl/api/rides/get';
@@ -25,11 +19,7 @@ class ApiConfig {
   static const String cancelRide = '$baseUrl/api/rides/cancel-ride';
   static const String userCreatedRides = '$baseUrl/api/rides/user-created';
   static const String userRideRequests = '$baseUrl/api/rides/user-requests';
-
-  // Interest endpoints
   static const String addInterest = '$baseUrl/api/interest/add-interest';
-
-  // Google Maps API
   static const String googleMapsApiKey =
       'AIzaSyAC0nozW7irImOmfyCwDi5VPPoAlM65K10';
   static const String googlePlacesApi =

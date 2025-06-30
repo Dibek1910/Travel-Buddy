@@ -4,7 +4,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:travel_buddy/config/api_config.dart';
 
 class AuthService {
-  // Login user
   static Future<Map<String, dynamic>> login(
       String email, String password) async {
     try {
@@ -20,11 +19,9 @@ class AuthService {
       final responseData = jsonDecode(response.body);
 
       if (responseData['success']) {
-        // Store auth token
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('authToken', responseData['token']);
 
-        // Store user name for display
         if (responseData['user'] != null) {
           await prefs.setString('userName', responseData['user']);
         }
@@ -44,7 +41,6 @@ class AuthService {
     }
   }
 
-  // Register user - FIXED: Only send required fields
   static Future<Map<String, dynamic>> register(
     String firstName,
     String email,
@@ -75,7 +71,6 @@ class AuthService {
     }
   }
 
-  // Send OTP for password reset
   static Future<Map<String, dynamic>> sendOtp(String email) async {
     try {
       final response = await http.post(
@@ -99,7 +94,6 @@ class AuthService {
     }
   }
 
-  // Verify OTP
   static Future<Map<String, dynamic>> verifyOtp(
       String email, String otp) async {
     try {
@@ -125,7 +119,6 @@ class AuthService {
     }
   }
 
-  // Update password - FIXED: Use correct parameters
   static Future<Map<String, dynamic>> updatePassword(
     String email,
     String newPassword,
@@ -153,7 +146,6 @@ class AuthService {
     }
   }
 
-  // Logout user
   static Future<Map<String, dynamic>> logout() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -174,19 +166,16 @@ class AuthService {
     }
   }
 
-  // Check if user is logged in
   static Future<bool> isLoggedIn() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('authToken') != null;
   }
 
-  // Get stored auth token
   static Future<String?> getAuthToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('authToken');
   }
 
-  // Get stored user data
   static Future<Map<String, dynamic>?> getUserData() async {
     final prefs = await SharedPreferences.getInstance();
     final userDataString = prefs.getString('userData');
@@ -196,13 +185,11 @@ class AuthService {
     return null;
   }
 
-  // Get current user ID
   static Future<String?> getCurrentUserId() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('userId');
   }
 
-  // Get user name
   static Future<String?> getUserName() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('userName');

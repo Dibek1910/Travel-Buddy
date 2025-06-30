@@ -43,7 +43,6 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
     });
 
     try {
-      // Extract requests from ride details
       final requests = widget.rideDetails['requests'] ?? [];
 
       if (!mounted) return;
@@ -64,7 +63,6 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Calculate request statistics - Fixed: Safe filtering with proper type checking
     final pendingRequests = _requests.where((req) {
       if (req is Map<String, dynamic> && req.containsKey('status')) {
         return req['status'] == 'pending';
@@ -142,7 +140,6 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Ride Info Card
                         Card(
                           elevation: 4,
                           shape: RoundedRectangleBorder(
@@ -171,8 +168,6 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
                                   ],
                                 ),
                                 SizedBox(height: 12),
-
-                                // Request Summary
                                 Text(
                                   'Request Summary',
                                   style: TextStyle(
@@ -199,8 +194,6 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
                           ),
                         ),
                         SizedBox(height: 20),
-
-                        // Requests List
                         Text(
                           'Passenger Requests',
                           style: TextStyle(
@@ -218,7 +211,6 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
                             ),
                           ),
                         SizedBox(height: 16),
-
                         if (_requests.isEmpty)
                           Center(
                             child: Column(
@@ -256,7 +248,7 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
                             itemCount: _requests.length,
                             itemBuilder: (context, index) {
                               final request = _requests[index];
-                              // Safe access to request ID
+
                               final requestId = request is Map<String, dynamic>
                                   ? request['_id'] ?? 'unknown_$index'
                                   : 'unknown_$index';
@@ -330,7 +322,6 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
       if (!mounted) return;
 
       if (result['success']) {
-        // Update the local request status
         setState(() {
           final requestIndex = _requests.indexWhere((req) {
             if (req is Map<String, dynamic>) {
@@ -407,7 +398,6 @@ class RequestItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Safe access to request data
     if (request is! Map<String, dynamic>) {
       return Card(
         margin: EdgeInsets.only(bottom: 12),
@@ -428,7 +418,6 @@ class RequestItem extends StatelessWidget {
         : 'Unknown';
     final status = requestData['status'] ?? 'pending';
 
-    // Format request date
     String requestDate = '';
     if (requestData['createdAt'] != null) {
       try {
@@ -439,7 +428,6 @@ class RequestItem extends StatelessWidget {
       }
     }
 
-    // Status styling
     MaterialColor statusColor;
     IconData statusIcon;
     String statusText;
@@ -472,7 +460,6 @@ class RequestItem extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Passenger info and status
             Row(
               children: [
                 CircleAvatar(
@@ -538,8 +525,6 @@ class RequestItem extends StatelessWidget {
                 ),
               ],
             ),
-
-            // Action buttons for pending requests
             if (status == 'pending') ...[
               SizedBox(height: 16),
               Row(

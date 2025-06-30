@@ -52,7 +52,6 @@ class _CreateRidePageState extends State<CreateRidePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Header
                   Card(
                     elevation: 4,
                     shape: RoundedRectangleBorder(
@@ -93,8 +92,6 @@ class _CreateRidePageState extends State<CreateRidePage> {
                     ),
                   ),
                   SizedBox(height: 20),
-
-                  // Route Information
                   Card(
                     elevation: 2,
                     shape: RoundedRectangleBorder(
@@ -134,8 +131,6 @@ class _CreateRidePageState extends State<CreateRidePage> {
                     ),
                   ),
                   SizedBox(height: 16),
-
-                  // Date and Time
                   Card(
                     elevation: 2,
                     shape: RoundedRectangleBorder(
@@ -217,8 +212,6 @@ class _CreateRidePageState extends State<CreateRidePage> {
                     ),
                   ),
                   SizedBox(height: 16),
-
-                  // Ride Details
                   Card(
                     elevation: 2,
                     shape: RoundedRectangleBorder(
@@ -354,8 +347,6 @@ class _CreateRidePageState extends State<CreateRidePage> {
                     ),
                   ),
                   SizedBox(height: 24),
-
-                  // Create Ride Button
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -477,7 +468,6 @@ class _CreateRidePageState extends State<CreateRidePage> {
     });
 
     try {
-      // Combine date and time
       DateTime rideDateTime = DateTime(
         _selectedDate!.year,
         _selectedDate!.month,
@@ -486,7 +476,6 @@ class _CreateRidePageState extends State<CreateRidePage> {
         _selectedTime!.minute,
       );
 
-      // Fixed: Create a Map<String, dynamic> for the ride data
       final rideData = {
         'from': _fromController.text.trim(),
         'to': _toController.text.trim(),
@@ -518,7 +507,6 @@ class _CreateRidePageState extends State<CreateRidePage> {
           ),
         );
 
-        // Clear form
         _formKey.currentState!.reset();
         _fromController.clear();
         _toController.clear();

@@ -58,7 +58,6 @@ class _SignupScreenState extends State<SignupScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Header
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -87,8 +86,6 @@ class _SignupScreenState extends State<SignupScreen> {
                           ),
                         ),
                         SizedBox(height: 32),
-
-                        // First Name Field
                         TextFormField(
                           controller: _firstNameController,
                           decoration: InputDecoration(
@@ -115,8 +112,6 @@ class _SignupScreenState extends State<SignupScreen> {
                           },
                         ),
                         SizedBox(height: 16),
-
-                        // Email Field
                         TextFormField(
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
@@ -144,8 +139,6 @@ class _SignupScreenState extends State<SignupScreen> {
                           },
                         ),
                         SizedBox(height: 16),
-
-                        // Password Field
                         TextFormField(
                           controller: _passwordController,
                           obscureText: _obscurePassword,
@@ -185,8 +178,6 @@ class _SignupScreenState extends State<SignupScreen> {
                           },
                         ),
                         SizedBox(height: 16),
-
-                        // Confirm Password Field
                         TextFormField(
                           controller: _confirmPasswordController,
                           obscureText: _obscureConfirmPassword,
@@ -228,8 +219,6 @@ class _SignupScreenState extends State<SignupScreen> {
                           },
                         ),
                         SizedBox(height: 24),
-
-                        // Error/Success Message
                         if (_message.isNotEmpty)
                           Container(
                             padding: EdgeInsets.all(12),
@@ -254,8 +243,6 @@ class _SignupScreenState extends State<SignupScreen> {
                               ),
                             ),
                           ),
-
-                        // Sign Up Button
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
@@ -300,8 +287,6 @@ class _SignupScreenState extends State<SignupScreen> {
                           ),
                         ),
                         SizedBox(height: 24),
-
-                        // Login Link
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -347,7 +332,6 @@ class _SignupScreenState extends State<SignupScreen> {
     });
 
     try {
-      // FIXED: Only send required fields
       final result = await AuthService.register(
         _firstNameController.text.trim(),
         _emailController.text.trim(),
@@ -360,7 +344,6 @@ class _SignupScreenState extends State<SignupScreen> {
       });
 
       if (result['success']) {
-        // Show success message and navigate back to login
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
@@ -375,7 +358,6 @@ class _SignupScreenState extends State<SignupScreen> {
           ),
         );
 
-        // Navigate back to login screen after a short delay
         Future.delayed(Duration(seconds: 1), () {
           Navigator.pop(context);
         });

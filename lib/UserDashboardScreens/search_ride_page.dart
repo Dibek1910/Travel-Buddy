@@ -19,7 +19,6 @@ class _SearchRidePageState extends State<SearchRidePage> {
   final TextEditingController _fromController = TextEditingController();
   final TextEditingController _toController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
-
   List<dynamic> _searchResults = [];
   bool _isLoading = false;
   bool _hasSearched = false;
@@ -58,7 +57,6 @@ class _SearchRidePageState extends State<SearchRidePage> {
       body: SafeArea(
         child: Column(
           children: [
-            // Search Form
             Card(
               margin: EdgeInsets.all(16),
               elevation: 4,
@@ -205,8 +203,6 @@ class _SearchRidePageState extends State<SearchRidePage> {
                 ),
               ),
             ),
-
-            // Search Results
             Expanded(
               child: _buildSearchResults(),
             ),
@@ -257,80 +253,88 @@ class _SearchRidePageState extends State<SearchRidePage> {
     }
 
     if (!_hasSearched) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.search,
-              size: 80,
-              color: Colors.grey[400],
-            ),
-            SizedBox(height: 16),
-            Text(
-              'Search for rides',
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.grey[600],
-                fontWeight: FontWeight.w500,
+      return SingleChildScrollView(
+        child: Container(
+          height: MediaQuery.of(context).size.height * 0.4,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.search,
+                size: 60,
+                color: Colors.grey[400],
               ),
-            ),
-            SizedBox(height: 8),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              child: Text(
-                'Enter your pickup and destination to find available rides',
+              SizedBox(height: 12),
+              Text(
+                'Search for rides',
                 style: TextStyle(
-                  color: Colors.grey[500],
+                  fontSize: 16,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w500,
                 ),
-                textAlign: TextAlign.center,
               ),
-            ),
-          ],
+              SizedBox(height: 6),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: Text(
+                  'Enter your pickup and destination to find available rides',
+                  style: TextStyle(
+                    color: Colors.grey[500],
+                    fontSize: 13,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
 
     if (_searchResults.isEmpty) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.directions_car_outlined,
-              size: 80,
-              color: Colors.grey[400],
-            ),
-            SizedBox(height: 16),
-            Text(
-              'No rides found',
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.grey[600],
-                fontWeight: FontWeight.w500,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.directions_car_outlined,
+                size: 80,
+                color: Colors.grey[400],
               ),
-            ),
-            SizedBox(height: 8),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              child: Text(
-                'Try adjusting your search criteria or check back later',
+              SizedBox(height: 16),
+              Text(
+                'No rides found',
                 style: TextStyle(
-                  color: Colors.grey[500],
+                  fontSize: 18,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w500,
                 ),
-                textAlign: TextAlign.center,
               ),
-            ),
-            SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: _addInterest,
-              icon: Icon(Icons.notifications_active),
-              label: Text('Get Notified'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
+              SizedBox(height: 8),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: Text(
+                  'Try adjusting your search criteria or check back later',
+                  style: TextStyle(
+                    color: Colors.grey[500],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
               ),
-            ),
-          ],
+              SizedBox(height: 20),
+              ElevatedButton.icon(
+                onPressed: _addInterest,
+                icon: Icon(Icons.notifications_active),
+                label: Text('Get Notified'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -477,10 +481,8 @@ class RideSearchItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Calculate available seats with safe type checking
     final int capacity = ride['capacity'] ?? 0;
     final List requests = ride['requests'] ?? [];
-
     final int approvedRequests = requests.where((req) {
       if (req is Map<String, dynamic> && req['status'] is String) {
         return req['status'] == 'approved';
@@ -491,7 +493,6 @@ class RideSearchItem extends StatelessWidget {
     final int availableSeats = capacity - approvedRequests;
     final bool isFull = availableSeats <= 0;
 
-    // Format date and time
     String formattedDateTime = '';
     if (ride['date'] != null) {
       try {
@@ -502,12 +503,10 @@ class RideSearchItem extends StatelessWidget {
       }
     }
 
-    // Host information
     final host = ride['host'];
     final hostName = host != null ? host['firstName'] ?? 'Unknown' : 'Unknown';
     final hostId = host != null ? host['_id'] : null;
 
-    // FIXED: Check if current user is the host
     final isCurrentUserHost = currentUserId != null && hostId == currentUserId;
 
     return Card(
@@ -524,7 +523,6 @@ class RideSearchItem extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header with route and availability
               Row(
                 children: [
                   Icon(Icons.location_on, color: Colors.orange, size: 24),
@@ -559,10 +557,7 @@ class RideSearchItem extends StatelessWidget {
                   ),
                 ],
               ),
-
               SizedBox(height: 12),
-
-              // Host and date info
               Container(
                 padding: EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -625,7 +620,6 @@ class RideSearchItem extends StatelessWidget {
                   ],
                 ),
               ),
-
               if (ride['description'] != null &&
                   ride['description'].isNotEmpty) ...[
                 SizedBox(height: 12),
@@ -647,10 +641,7 @@ class RideSearchItem extends StatelessWidget {
                   ),
                 ),
               ],
-
               SizedBox(height: 12),
-
-              // FIXED: Action button - hide for user's own rides
               if (isCurrentUserHost) ...[
                 Container(
                   width: double.infinity,

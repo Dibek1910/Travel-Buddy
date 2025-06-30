@@ -22,7 +22,6 @@ class _MyProfileState extends State<MyProfile> {
 
   @override
   void dispose() {
-    // Cancel any ongoing operations
     super.dispose();
   }
 
@@ -37,7 +36,7 @@ class _MyProfileState extends State<MyProfile> {
     try {
       final result = await UserService.getUserProfile();
 
-      if (!mounted) return; // Check if widget is still mounted
+      if (!mounted) return;
 
       if (result['success']) {
         setState(() {
@@ -51,7 +50,7 @@ class _MyProfileState extends State<MyProfile> {
         });
       }
     } catch (error) {
-      if (!mounted) return; // Check if widget is still mounted
+      if (!mounted) return;
 
       setState(() {
         _errorMessage = 'Error fetching profile: $error';
@@ -111,7 +110,6 @@ class _MyProfileState extends State<MyProfile> {
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
                       children: [
-                        // Profile Header Card
                         Card(
                           elevation: 4,
                           shape: RoundedRectangleBorder(
@@ -155,8 +153,6 @@ class _MyProfileState extends State<MyProfile> {
                           ),
                         ),
                         SizedBox(height: 20),
-
-                        // Profile Details Card
                         Card(
                           elevation: 2,
                           shape: RoundedRectangleBorder(
@@ -190,8 +186,6 @@ class _MyProfileState extends State<MyProfile> {
                           ),
                         ),
                         SizedBox(height: 20),
-
-                        // Logout Button
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton.icon(

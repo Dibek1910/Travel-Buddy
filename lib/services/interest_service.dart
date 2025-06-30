@@ -4,13 +4,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:travel_buddy/config/api_config.dart';
 
 class InterestService {
-  // Get auth token from shared preferences
   static Future<String?> _getAuthToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('authToken');
   }
 
-  // Add interest for a route
   static Future<Map<String, dynamic>> addInterest(
       String from, String to) async {
     try {
