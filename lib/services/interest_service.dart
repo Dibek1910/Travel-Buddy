@@ -10,14 +10,13 @@ class InterestService {
   }
 
   static Future<Map<String, dynamic>> addInterest(
-      String from, String to) async {
+    String from,
+    String to,
+  ) async {
     try {
       final authToken = await _getAuthToken();
       if (authToken == null) {
-        return {
-          'success': false,
-          'message': 'Authentication token not found',
-        };
+        return {'success': false, 'message': 'Authentication token not found'};
       }
 
       final response = await http.post(
@@ -26,10 +25,7 @@ class InterestService {
           'Authorization': 'Bearer $authToken',
           'Content-Type': 'application/json',
         },
-        body: jsonEncode({
-          'from': from,
-          'to': to,
-        }),
+        body: jsonEncode({'from': from, 'to': to}),
       );
 
       final responseData = jsonDecode(response.body);
@@ -39,10 +35,7 @@ class InterestService {
         'data': responseData['data'],
       };
     } catch (error) {
-      return {
-        'success': false,
-        'message': 'Network error: $error',
-      };
+      return {'success': false, 'message': 'Network error: $error'};
     }
   }
 }

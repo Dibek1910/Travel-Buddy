@@ -28,10 +28,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Reset Password'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: Text('Reset Password'), centerTitle: true),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -39,11 +36,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 40.0),
-              Icon(
-                Icons.lock_reset,
-                size: 80.0,
-                color: Colors.orange,
-              ),
+              Icon(Icons.lock_reset, size: 80.0, color: Colors.orange),
               const SizedBox(height: 24.0),
               Text(
                 'Reset Your Password',
@@ -58,9 +51,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               Text(
                 _message,
                 style: TextStyle(
-                  color: _message.contains('error')
-                      ? Colors.red
-                      : Colors.grey[600],
+                  color:
+                      _message.contains('error')
+                          ? Colors.red
+                          : Colors.grey[600],
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -89,7 +83,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 child: Text(
                   'Back to Login',
                   style: TextStyle(
-                      color: Colors.orange, fontWeight: FontWeight.w600),
+                    color: Colors.orange,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
@@ -127,10 +123,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             ),
             minimumSize: Size(double.infinity, 50),
           ),
-          child: _isLoading
-              ? CircularProgressIndicator(color: Colors.white)
-              : Text('Send OTP',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+          child:
+              _isLoading
+                  ? CircularProgressIndicator(color: Colors.white)
+                  : Text(
+                    'Send OTP',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
         ),
       ],
     );
@@ -164,10 +163,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             ),
             minimumSize: Size(double.infinity, 50),
           ),
-          child: _isLoading
-              ? CircularProgressIndicator(color: Colors.white)
-              : Text('Verify OTP',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+          child:
+              _isLoading
+                  ? CircularProgressIndicator(color: Colors.white)
+                  : Text(
+                    'Verify OTP',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
         ),
       ],
     );
@@ -201,10 +203,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             ),
             minimumSize: Size(double.infinity, 50),
           ),
-          child: _isLoading
-              ? CircularProgressIndicator(color: Colors.white)
-              : Text('Update Password',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+          child:
+              _isLoading
+                  ? CircularProgressIndicator(color: Colors.white)
+                  : Text(
+                    'Update Password',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
         ),
       ],
     );

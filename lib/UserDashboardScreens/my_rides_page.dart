@@ -67,26 +67,22 @@ class _MyRidesPageState extends State<MyRidesPage> {
     }
   }
 
-  // Method to update ride data when request status changes
   void _updateRideData(String rideId, String requestId, String newStatus) {
     setState(() {
-      final rideIndex =
-          _createdRides.indexWhere((ride) => ride['_id'] == rideId);
+      final rideIndex = _createdRides.indexWhere(
+        (ride) => ride['_id'] == rideId,
+      );
       if (rideIndex != -1) {
         final ride = _createdRides[rideIndex];
         final requests = List.from(ride['requests'] ?? []);
 
-        // Find and update the specific request
-        final requestIndex =
-            requests.indexWhere((req) => req['_id'] == requestId);
+        final requestIndex = requests.indexWhere(
+          (req) => req['_id'] == requestId,
+        );
         if (requestIndex != -1) {
           requests[requestIndex]['status'] = newStatus;
 
-          // Update the ride with new requests
-          _createdRides[rideIndex] = {
-            ...ride,
-            'requests': requests,
-          };
+          _createdRides[rideIndex] = {...ride, 'requests': requests};
         }
       }
     });
@@ -102,10 +98,7 @@ class _MyRidesPageState extends State<MyRidesPage> {
         foregroundColor: Colors.white,
         automaticallyImplyLeading: false,
         actions: [
-          IconButton(
-            icon: Icon(Icons.refresh),
-            onPressed: _loadCreatedRides,
-          ),
+          IconButton(icon: Icon(Icons.refresh), onPressed: _loadCreatedRides),
         ],
       ),
       body: _buildCreatedRidesContent(),
@@ -120,8 +113,10 @@ class _MyRidesPageState extends State<MyRidesPage> {
           children: [
             CircularProgressIndicator(color: Colors.orange),
             SizedBox(height: 16),
-            Text('Loading your rides...',
-                style: TextStyle(color: Colors.grey[600])),
+            Text(
+              'Loading your rides...',
+              style: TextStyle(color: Colors.grey[600]),
+            ),
           ],
         ),
       );
@@ -136,9 +131,11 @@ class _MyRidesPageState extends State<MyRidesPage> {
             SizedBox(height: 16),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
-              child: Text(_errorMessageCreated,
-                  style: TextStyle(color: Colors.red),
-                  textAlign: TextAlign.center),
+              child: Text(
+                _errorMessageCreated,
+                style: TextStyle(color: Colors.red),
+                textAlign: TextAlign.center,
+              ),
             ),
             SizedBox(height: 16),
             ElevatedButton(
@@ -175,9 +172,7 @@ class _MyRidesPageState extends State<MyRidesPage> {
               padding: EdgeInsets.symmetric(horizontal: 20),
               child: Text(
                 'Create your first ride to start carpooling',
-                style: TextStyle(
-                  color: Colors.grey[500],
-                ),
+                style: TextStyle(color: Colors.grey[500]),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -214,11 +209,12 @@ class _MyRidesPageState extends State<MyRidesPage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => RideRequestManagementPage(
-                      rideId: ride['_id'],
-                      rideDetails: rideDetails['rideDetails'],
-                      onRequestStatusChanged: _updateRideData,
-                    ),
+                    builder:
+                        (context) => RideRequestManagementPage(
+                          rideId: ride['_id'],
+                          rideDetails: rideDetails['rideDetails'],
+                          onRequestStatusChanged: _updateRideData,
+                        ),
                   ),
                 ).then((_) {
                   _loadCreatedRides();
@@ -255,12 +251,14 @@ class CreatedRideItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final List requests = ride['requests'] ?? [];
-    final int pendingRequests = requests.where((req) {
-      return req is Map<String, dynamic> && req['status'] == 'pending';
-    }).length;
-    final int approvedRequests = requests.where((req) {
-      return req is Map<String, dynamic> && req['status'] == 'approved';
-    }).length;
+    final int pendingRequests =
+        requests.where((req) {
+          return req is Map<String, dynamic> && req['status'] == 'pending';
+        }).length;
+    final int approvedRequests =
+        requests.where((req) {
+          return req is Map<String, dynamic> && req['status'] == 'approved';
+        }).length;
     final int totalRequests = requests.length;
 
     String formattedDate = '';
@@ -280,9 +278,7 @@ class CreatedRideItem extends StatelessWidget {
     return Card(
       margin: EdgeInsets.only(bottom: 16),
       elevation: 3,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -295,10 +291,7 @@ class CreatedRideItem extends StatelessWidget {
                 Expanded(
                   child: Text(
                     '${ride['from']} → ${ride['to']}',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -307,8 +300,10 @@ class CreatedRideItem extends StatelessWidget {
                     if (pendingRequests > 0)
                       Container(
                         margin: EdgeInsets.only(right: 8),
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.red[100],
                           borderRadius: BorderRadius.circular(12),
@@ -397,8 +392,11 @@ class CreatedRideItem extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.people_outline,
-                        color: Colors.blue[600], size: 20),
+                    Icon(
+                      Icons.people_outline,
+                      color: Colors.blue[600],
+                      size: 20,
+                    ),
                     SizedBox(width: 8),
                     Expanded(
                       child: Text(

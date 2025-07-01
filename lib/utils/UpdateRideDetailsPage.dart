@@ -78,11 +78,7 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Edit Ride'),
-        centerTitle: true,
-        elevation: 0,
-      ),
+      appBar: AppBar(title: Text('Edit Ride'), centerTitle: true, elevation: 0),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -130,22 +126,25 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
                           Container(
                             padding: EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: _message.contains('success')
-                                  ? Colors.green[50]
-                                  : Colors.red[50],
+                              color:
+                                  _message.contains('success')
+                                      ? Colors.green[50]
+                                      : Colors.red[50],
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
-                                color: _message.contains('success')
-                                    ? Colors.green
-                                    : Colors.red,
+                                color:
+                                    _message.contains('success')
+                                        ? Colors.green
+                                        : Colors.red,
                               ),
                             ),
                             child: Text(
                               _message,
                               style: TextStyle(
-                                color: _message.contains('success')
-                                    ? Colors.green[800]
-                                    : Colors.red[800],
+                                color:
+                                    _message.contains('success')
+                                        ? Colors.green[800]
+                                        : Colors.red[800],
                               ),
                             ),
                           ),
@@ -199,15 +198,19 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
                                 controller: _dateController,
                                 decoration: InputDecoration(
                                   labelText: 'Date',
-                                  prefixIcon: Icon(Icons.calendar_today,
-                                      color: Colors.orange),
+                                  prefixIcon: Icon(
+                                    Icons.calendar_today,
+                                    color: Colors.orange,
+                                  ),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12.0),
                                   ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12.0),
                                     borderSide: BorderSide(
-                                        color: Colors.orange, width: 2),
+                                      color: Colors.orange,
+                                      width: 2,
+                                    ),
                                   ),
                                 ),
                                 readOnly: true,
@@ -226,15 +229,19 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
                                 controller: _timeController,
                                 decoration: InputDecoration(
                                   labelText: 'Time',
-                                  prefixIcon: Icon(Icons.access_time,
-                                      color: Colors.orange),
+                                  prefixIcon: Icon(
+                                    Icons.access_time,
+                                    color: Colors.orange,
+                                  ),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12.0),
                                   ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12.0),
                                     borderSide: BorderSide(
-                                        color: Colors.orange, width: 2),
+                                      color: Colors.orange,
+                                      width: 2,
+                                    ),
                                   ),
                                 ),
                                 readOnly: true,
@@ -281,15 +288,19 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
                                 keyboardType: TextInputType.number,
                                 decoration: InputDecoration(
                                   labelText: 'Capacity',
-                                  prefixIcon:
-                                      Icon(Icons.people, color: Colors.orange),
+                                  prefixIcon: Icon(
+                                    Icons.people,
+                                    color: Colors.orange,
+                                  ),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12.0),
                                   ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12.0),
                                     borderSide: BorderSide(
-                                        color: Colors.orange, width: 2),
+                                      color: Colors.orange,
+                                      width: 2,
+                                    ),
                                   ),
                                 ),
                                 validator: (value) {
@@ -313,15 +324,19 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
                                 keyboardType: TextInputType.phone,
                                 decoration: InputDecoration(
                                   labelText: 'Phone Number',
-                                  prefixIcon:
-                                      Icon(Icons.phone, color: Colors.orange),
+                                  prefixIcon: Icon(
+                                    Icons.phone,
+                                    color: Colors.orange,
+                                  ),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12.0),
                                   ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12.0),
                                     borderSide: BorderSide(
-                                        color: Colors.orange, width: 2),
+                                      color: Colors.orange,
+                                      width: 2,
+                                    ),
                                   ),
                                 ),
                                 validator: (value) {
@@ -340,19 +355,24 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
                         SizedBox(height: 16),
                         TextFormField(
                           controller: _priceController,
-                          keyboardType:
-                              TextInputType.numberWithOptions(decimal: true),
+                          keyboardType: TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
                           decoration: InputDecoration(
                             labelText: 'Price per seat (₹) - Optional',
-                            prefixIcon: Icon(Icons.currency_rupee,
-                                color: Colors.orange),
+                            prefixIcon: Icon(
+                              Icons.currency_rupee,
+                              color: Colors.orange,
+                            ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12.0),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12.0),
-                              borderSide:
-                                  BorderSide(color: Colors.orange, width: 2),
+                              borderSide: BorderSide(
+                                color: Colors.orange,
+                                width: 2,
+                              ),
                             ),
                           ),
                         ),
@@ -362,15 +382,19 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
                           maxLines: 3,
                           decoration: InputDecoration(
                             labelText: 'Description (Optional)',
-                            prefixIcon:
-                                Icon(Icons.description, color: Colors.orange),
+                            prefixIcon: Icon(
+                              Icons.description,
+                              color: Colors.orange,
+                            ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12.0),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12.0),
-                              borderSide:
-                                  BorderSide(color: Colors.orange, width: 2),
+                              borderSide: BorderSide(
+                                color: Colors.orange,
+                                width: 2,
+                              ),
                             ),
                             hintText:
                                 'Add any additional information about your ride...',
@@ -390,34 +414,37 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
                     ),
                     elevation: 4,
                   ),
-                  child: _isLoading
-                      ? Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
+                  child:
+                      _isLoading
+                          ? Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
                               ),
-                            ),
-                            SizedBox(width: 12),
-                            Text('Updating Ride...'),
-                          ],
-                        )
-                      : Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.save),
-                            SizedBox(width: 8),
-                            Text(
-                              'Update Ride',
-                              style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.w600),
-                            ),
-                          ],
-                        ),
+                              SizedBox(width: 12),
+                              Text('Updating Ride...'),
+                            ],
+                          )
+                          : Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.save),
+                              SizedBox(width: 8),
+                              Text(
+                                'Update Ride',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
                 ),
                 SizedBox(height: 20),
               ],
@@ -497,9 +524,10 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
     try {
       final capacity = int.parse(_capacityController.text);
       final phoneNo = int.parse(_phoneController.text);
-      final price = _priceController.text.isNotEmpty
-          ? double.parse(_priceController.text)
-          : null;
+      final price =
+          _priceController.text.isNotEmpty
+              ? double.parse(_priceController.text)
+              : null;
 
       DateTime? dateTime;
       if (_selectedDate != null && _selectedTime != null) {

@@ -9,7 +9,8 @@ class GoogleMapsService {
     if (input.isEmpty) return [];
 
     try {
-      final url = '$_baseUrl/place/autocomplete/json'
+      final url =
+          '$_baseUrl/place/autocomplete/json'
           '?input=${Uri.encodeComponent(input)}'
           '&key=${ApiConfig.googleMapsApiKey}'
           '&types=geocode'
@@ -33,7 +34,8 @@ class GoogleMapsService {
 
   static Future<PlaceDetails?> getPlaceDetails(String placeId) async {
     try {
-      final url = '$_baseUrl/place/details/json'
+      final url =
+          '$_baseUrl/place/details/json'
           '?place_id=$placeId'
           '&key=${ApiConfig.googleMapsApiKey}'
           '&fields=geometry,formatted_address,name';
@@ -53,7 +55,8 @@ class GoogleMapsService {
 
   static Future<LatLng?> geocodeAddress(String address) async {
     try {
-      final url = '$_baseUrl/geocode/json'
+      final url =
+          '$_baseUrl/geocode/json'
           '?address=${Uri.encodeComponent(address)}'
           '&key=${ApiConfig.googleMapsApiKey}';
 
@@ -76,7 +79,8 @@ class GoogleMapsService {
     LatLng destination,
   ) async {
     try {
-      final url = '$_baseUrl/directions/json'
+      final url =
+          '$_baseUrl/directions/json'
           '?origin=${origin.latitude},${origin.longitude}'
           '&destination=${destination.latitude},${destination.longitude}'
           '&key=${ApiConfig.googleMapsApiKey}';

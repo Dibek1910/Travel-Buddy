@@ -72,10 +72,7 @@ class RatingStats {
   final int totalRatings;
   final double? averageRating;
 
-  RatingStats({
-    required this.totalRatings,
-    this.averageRating,
-  });
+  RatingStats({required this.totalRatings, this.averageRating});
 
   factory RatingStats.fromJson(Map<String, dynamic> json) {
     return RatingStats(
@@ -85,9 +82,6 @@ class RatingStats {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'totalRatings': totalRatings,
-      'averageRating': averageRating,
-    };
+    return {'totalRatings': totalRatings, 'averageRating': averageRating};
   }
 }

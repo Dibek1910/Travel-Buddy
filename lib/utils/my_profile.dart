@@ -68,145 +68,156 @@ class _MyProfileState extends State<MyProfile> {
         backgroundColor: Colors.orange,
         foregroundColor: Colors.white,
       ),
-      body: _isLoading
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(color: Colors.orange),
-                  SizedBox(height: 16),
-                  Text('Loading profile...',
-                      style: TextStyle(color: Colors.grey[600])),
-                ],
-              ),
-            )
-          : _errorMessage.isNotEmpty
+      body:
+          _isLoading
               ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.error_outline,
-                          size: 80, color: Colors.red[300]),
-                      SizedBox(height: 16),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
-                        child: Text(_errorMessage,
-                            style: TextStyle(color: Colors.red),
-                            textAlign: TextAlign.center),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(color: Colors.orange),
+                    SizedBox(height: 16),
+                    Text(
+                      'Loading profile...',
+                      style: TextStyle(color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
+              )
+              : _errorMessage.isNotEmpty
+              ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.error_outline, size: 80, color: Colors.red[300]),
+                    SizedBox(height: 16),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      child: Text(
+                        _errorMessage,
+                        style: TextStyle(color: Colors.red),
+                        textAlign: TextAlign.center,
                       ),
-                      SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: _fetchUserProfile,
-                        child: Text('Try Again'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange,
+                    ),
+                    SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _fetchUserProfile,
+                      child: Text('Try Again'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+              : SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      Card(
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(24.0),
+                          child: Column(
+                            children: [
+                              CircleAvatar(
+                                radius: 50,
+                                backgroundColor: Colors.orange[100],
+                                child: Text(
+                                  _getInitials(),
+                                  style: TextStyle(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.orange,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: 16),
+                              Text(
+                                _getFullName(),
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey[800],
+                                ),
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                userProfile!['email'] ?? '',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
+                      SizedBox(height: 20),
+                      Card(
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Profile Information',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey[800],
+                                ),
+                              ),
+                              SizedBox(height: 16),
+                              _buildProfileRow(
+                                Icons.person,
+                                'Full Name',
+                                _getFullName(),
+                              ),
+                              _buildProfileRow(
+                                Icons.email,
+                                'Email',
+                                userProfile!['email'] ?? 'N/A',
+                              ),
+                              if (userProfile!['createdAt'] != null)
+                                _buildProfileRow(
+                                  Icons.calendar_today,
+                                  'Member Since',
+                                  _formatDate(userProfile!['createdAt']),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: _logout,
+                          icon: Icon(Icons.logout),
+                          label: Text('Logout'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 20),
                     ],
                   ),
-                )
-              : SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      children: [
-                        Card(
-                          elevation: 4,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(24.0),
-                            child: Column(
-                              children: [
-                                CircleAvatar(
-                                  radius: 50,
-                                  backgroundColor: Colors.orange[100],
-                                  child: Text(
-                                    _getInitials(),
-                                    style: TextStyle(
-                                      fontSize: 32,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.orange,
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(height: 16),
-                                Text(
-                                  _getFullName(),
-                                  style: TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.grey[800],
-                                  ),
-                                ),
-                                SizedBox(height: 8),
-                                Text(
-                                  userProfile!['email'] ?? '',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 20),
-                        Card(
-                          elevation: 2,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Profile Information',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.grey[800],
-                                  ),
-                                ),
-                                SizedBox(height: 16),
-                                _buildProfileRow(
-                                    Icons.person, 'Full Name', _getFullName()),
-                                _buildProfileRow(Icons.email, 'Email',
-                                    userProfile!['email'] ?? 'N/A'),
-                                if (userProfile!['createdAt'] != null)
-                                  _buildProfileRow(
-                                      Icons.calendar_today,
-                                      'Member Since',
-                                      _formatDate(userProfile!['createdAt'])),
-                              ],
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 20),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            onPressed: _logout,
-                            icon: Icon(Icons.logout),
-                            label: Text('Logout'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
-                              foregroundColor: Colors.white,
-                              padding: EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 20),
-                      ],
-                    ),
-                  ),
                 ),
+              ),
     );
   }
 
@@ -225,12 +236,7 @@ class _MyProfileState extends State<MyProfile> {
             ),
           ),
           Expanded(
-            child: Text(
-              value,
-              style: TextStyle(
-                color: Colors.grey[800],
-              ),
-            ),
+            child: Text(value, style: TextStyle(color: Colors.grey[800])),
           ),
         ],
       ),
@@ -292,10 +298,9 @@ class _MyProfileState extends State<MyProfile> {
       try {
         await AuthService.logout();
         if (mounted) {
-          Navigator.of(context).pushNamedAndRemoveUntil(
-            '/home',
-            (Route<dynamic> route) => false,
-          );
+          Navigator.of(
+            context,
+          ).pushNamedAndRemoveUntil('/home', (Route<dynamic> route) => false);
         }
       } catch (error) {
         if (mounted) {

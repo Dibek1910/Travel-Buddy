@@ -62,10 +62,7 @@ class UserDashboardState extends State<UserDashboard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Travel Buddy'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: Text('Travel Buddy'), centerTitle: true),
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
@@ -85,11 +82,7 @@ class UserDashboardState extends State<UserDashboard> {
                   CircleAvatar(
                     radius: 30,
                     backgroundColor: Colors.white,
-                    child: Icon(
-                      Icons.person,
-                      size: 35,
-                      color: Colors.orange,
-                    ),
+                    child: Icon(Icons.person, size: 35, color: Colors.orange),
                   ),
                   SizedBox(height: 10),
                   Text(
@@ -117,9 +110,7 @@ class UserDashboardState extends State<UserDashboard> {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => const MyProfile(),
-                  ),
+                  MaterialPageRoute(builder: (context) => const MyProfile()),
                 );
               },
             ),
@@ -192,7 +183,8 @@ class UserDashboardState extends State<UserDashboard> {
               Text('Version: 1.0.0'),
               SizedBox(height: 10),
               Text(
-                  'A platform to share rides, reduce costs, and make travel more sustainable.'),
+                'A platform to share rides, reduce costs, and make travel more sustainable.',
+              ),
             ],
           ),
           actions: [

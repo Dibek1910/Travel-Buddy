@@ -59,10 +59,9 @@ class _SearchRidePageState extends State<SearchRidePage> {
           builder: (context, constraints) {
             return Column(
               children: [
-                // Search Form - Fixed at top
                 Container(
                   constraints: BoxConstraints(
-                    maxHeight: constraints.maxHeight * 0.6, // Max 60% of screen
+                    maxHeight: constraints.maxHeight * 0.6,
                   ),
                   child: SingleChildScrollView(
                     child: Card(
@@ -77,11 +76,13 @@ class _SearchRidePageState extends State<SearchRidePage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            // Header
                             Row(
                               children: [
-                                Icon(Icons.search,
-                                    color: Colors.orange, size: 28),
+                                Icon(
+                                  Icons.search,
+                                  color: Colors.orange,
+                                  size: 28,
+                                ),
                                 SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
@@ -106,7 +107,6 @@ class _SearchRidePageState extends State<SearchRidePage> {
                             ),
                             SizedBox(height: 20),
 
-                            // From Field
                             LocationAutocompleteField(
                               label: 'From',
                               controller: _fromController,
@@ -116,7 +116,6 @@ class _SearchRidePageState extends State<SearchRidePage> {
                             ),
                             SizedBox(height: 16),
 
-                            // To Field
                             LocationAutocompleteField(
                               label: 'To',
                               controller: _toController,
@@ -126,31 +125,35 @@ class _SearchRidePageState extends State<SearchRidePage> {
                             ),
                             SizedBox(height: 16),
 
-                            // Date Field
                             TextField(
                               controller: _dateController,
                               decoration: InputDecoration(
                                 labelText: 'Date (Optional)',
-                                prefixIcon: Icon(Icons.calendar_today,
-                                    color: Colors.orange),
-                                suffixIcon: _dateController.text.isNotEmpty
-                                    ? IconButton(
-                                        icon: Icon(Icons.clear),
-                                        onPressed: () {
-                                          setState(() {
-                                            _dateController.clear();
-                                            _selectedDate = null;
-                                          });
-                                        },
-                                      )
-                                    : null,
+                                prefixIcon: Icon(
+                                  Icons.calendar_today,
+                                  color: Colors.orange,
+                                ),
+                                suffixIcon:
+                                    _dateController.text.isNotEmpty
+                                        ? IconButton(
+                                          icon: Icon(Icons.clear),
+                                          onPressed: () {
+                                            setState(() {
+                                              _dateController.clear();
+                                              _selectedDate = null;
+                                            });
+                                          },
+                                        )
+                                        : null,
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12.0),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12.0),
                                   borderSide: BorderSide(
-                                      color: Colors.orange, width: 2),
+                                    color: Colors.orange,
+                                    width: 2,
+                                  ),
                                 ),
                               ),
                               readOnly: true,
@@ -158,10 +161,8 @@ class _SearchRidePageState extends State<SearchRidePage> {
                             ),
                             SizedBox(height: 20),
 
-                            // Action Buttons
                             LayoutBuilder(
                               builder: (context, buttonConstraints) {
-                                // Use column layout for smaller screens
                                 if (buttonConstraints.maxWidth < 400) {
                                   return Column(
                                     children: [
@@ -172,39 +173,44 @@ class _SearchRidePageState extends State<SearchRidePage> {
                                               _isLoading ? null : _searchRides,
                                           style: ElevatedButton.styleFrom(
                                             padding: EdgeInsets.symmetric(
-                                                vertical: 16),
+                                              vertical: 16,
+                                            ),
                                             shape: RoundedRectangleBorder(
                                               borderRadius:
                                                   BorderRadius.circular(12),
                                             ),
                                           ),
-                                          child: _isLoading
-                                              ? Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  children: [
-                                                    SizedBox(
-                                                      width: 20,
-                                                      height: 20,
-                                                      child:
-                                                          CircularProgressIndicator(
-                                                        color: Colors.white,
-                                                        strokeWidth: 2,
+                                          child:
+                                              _isLoading
+                                                  ? Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    children: [
+                                                      SizedBox(
+                                                        width: 20,
+                                                        height: 20,
+                                                        child:
+                                                            CircularProgressIndicator(
+                                                              color:
+                                                                  Colors.white,
+                                                              strokeWidth: 2,
+                                                            ),
                                                       ),
-                                                    ),
-                                                    SizedBox(width: 12),
-                                                    Text('Searching...'),
-                                                  ],
-                                                )
-                                              : Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  children: [
-                                                    Icon(Icons.search),
-                                                    SizedBox(width: 8),
-                                                    Text('Search Rides'),
-                                                  ],
-                                                ),
+                                                      SizedBox(width: 12),
+                                                      Text('Searching...'),
+                                                    ],
+                                                  )
+                                                  : Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    children: [
+                                                      Icon(Icons.search),
+                                                      SizedBox(width: 8),
+                                                      Text('Search Rides'),
+                                                    ],
+                                                  ),
                                         ),
                                       ),
                                       SizedBox(height: 12),
@@ -216,7 +222,8 @@ class _SearchRidePageState extends State<SearchRidePage> {
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor: Colors.blue,
                                             padding: EdgeInsets.symmetric(
-                                                vertical: 16),
+                                              vertical: 16,
+                                            ),
                                             shape: RoundedRectangleBorder(
                                               borderRadius:
                                                   BorderRadius.circular(12),
@@ -226,8 +233,10 @@ class _SearchRidePageState extends State<SearchRidePage> {
                                             mainAxisAlignment:
                                                 MainAxisAlignment.center,
                                             children: [
-                                              Icon(Icons.notifications_active,
-                                                  size: 20),
+                                              Icon(
+                                                Icons.notifications_active,
+                                                size: 20,
+                                              ),
                                               SizedBox(width: 8),
                                               Text('Notify Me'),
                                             ],
@@ -237,7 +246,6 @@ class _SearchRidePageState extends State<SearchRidePage> {
                                     ],
                                   );
                                 } else {
-                                  // Use row layout for larger screens
                                   return Row(
                                     children: [
                                       Expanded(
@@ -246,43 +254,52 @@ class _SearchRidePageState extends State<SearchRidePage> {
                                               _isLoading ? null : _searchRides,
                                           style: ElevatedButton.styleFrom(
                                             padding: EdgeInsets.symmetric(
-                                                vertical: 16),
+                                              vertical: 16,
+                                            ),
                                             shape: RoundedRectangleBorder(
                                               borderRadius:
                                                   BorderRadius.circular(12),
                                             ),
                                           ),
-                                          child: _isLoading
-                                              ? Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  children: [
-                                                    SizedBox(
-                                                      width: 20,
-                                                      height: 20,
-                                                      child:
-                                                          CircularProgressIndicator(
-                                                        color: Colors.white,
-                                                        strokeWidth: 2,
+                                          child:
+                                              _isLoading
+                                                  ? Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    children: [
+                                                      SizedBox(
+                                                        width: 20,
+                                                        height: 20,
+                                                        child:
+                                                            CircularProgressIndicator(
+                                                              color:
+                                                                  Colors.white,
+                                                              strokeWidth: 2,
+                                                            ),
                                                       ),
-                                                    ),
-                                                    SizedBox(width: 12),
-                                                    Flexible(
+                                                      SizedBox(width: 12),
+                                                      Flexible(
                                                         child: Text(
-                                                            'Searching...')),
-                                                  ],
-                                                )
-                                              : Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  children: [
-                                                    Icon(Icons.search),
-                                                    SizedBox(width: 8),
-                                                    Flexible(
+                                                          'Searching...',
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  )
+                                                  : Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    children: [
+                                                      Icon(Icons.search),
+                                                      SizedBox(width: 8),
+                                                      Flexible(
                                                         child: Text(
-                                                            'Search Rides')),
-                                                  ],
-                                                ),
+                                                          'Search Rides',
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
                                         ),
                                       ),
                                       SizedBox(width: 12),
@@ -292,17 +309,22 @@ class _SearchRidePageState extends State<SearchRidePage> {
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: Colors.blue,
                                           padding: EdgeInsets.symmetric(
-                                              vertical: 16, horizontal: 20),
+                                            vertical: 16,
+                                            horizontal: 20,
+                                          ),
                                           shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(12),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
                                           ),
                                         ),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            Icon(Icons.notifications_active,
-                                                size: 20),
+                                            Icon(
+                                              Icons.notifications_active,
+                                              size: 20,
+                                            ),
                                             SizedBox(width: 4),
                                             Text('Notify Me'),
                                           ],
@@ -320,10 +342,7 @@ class _SearchRidePageState extends State<SearchRidePage> {
                   ),
                 ),
 
-                // Results Section - Flexible to fill remaining space
-                Expanded(
-                  child: _buildSearchResults(),
-                ),
+                Expanded(child: _buildSearchResults()),
               ],
             );
           },
@@ -340,8 +359,10 @@ class _SearchRidePageState extends State<SearchRidePage> {
           children: [
             CircularProgressIndicator(color: Colors.orange),
             SizedBox(height: 16),
-            Text('Searching for rides...',
-                style: TextStyle(color: Colors.grey[600])),
+            Text(
+              'Searching for rides...',
+              style: TextStyle(color: Colors.grey[600]),
+            ),
           ],
         ),
       );
@@ -362,10 +383,7 @@ class _SearchRidePageState extends State<SearchRidePage> {
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _searchRides,
-                child: Text('Try Again'),
-              ),
+              ElevatedButton(onPressed: _searchRides, child: Text('Try Again')),
             ],
           ),
         ),
@@ -379,11 +397,7 @@ class _SearchRidePageState extends State<SearchRidePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             SizedBox(height: 40),
-            Icon(
-              Icons.search,
-              size: 60,
-              color: Colors.grey[400],
-            ),
+            Icon(Icons.search, size: 60, color: Colors.grey[400]),
             SizedBox(height: 12),
             Text(
               'Search for rides',
@@ -396,10 +410,7 @@ class _SearchRidePageState extends State<SearchRidePage> {
             SizedBox(height: 6),
             Text(
               'Enter your pickup and destination to find available rides',
-              style: TextStyle(
-                color: Colors.grey[500],
-                fontSize: 13,
-              ),
+              style: TextStyle(color: Colors.grey[500], fontSize: 13),
               textAlign: TextAlign.center,
             ),
           ],
@@ -431,9 +442,7 @@ class _SearchRidePageState extends State<SearchRidePage> {
               SizedBox(height: 8),
               Text(
                 'Try adjusting your search criteria or check back later',
-                style: TextStyle(
-                  color: Colors.grey[500],
-                ),
+                style: TextStyle(color: Colors.grey[500]),
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 20),
@@ -441,9 +450,7 @@ class _SearchRidePageState extends State<SearchRidePage> {
                 onPressed: _addInterest,
                 icon: Icon(Icons.notifications_active),
                 label: Text('Get Notified'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                ),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
               ),
             ],
           ),
@@ -462,9 +469,7 @@ class _SearchRidePageState extends State<SearchRidePage> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => RideDetailsScreen(
-                  rideDetails: ride,
-                ),
+                builder: (context) => RideDetailsScreen(rideDetails: ride),
               ),
             );
           },
@@ -595,12 +600,13 @@ class RideSearchItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final int capacity = ride['capacity'] ?? 0;
     final List requests = ride['requests'] ?? [];
-    final int approvedRequests = requests.where((req) {
-      if (req is Map<String, dynamic> && req['status'] is String) {
-        return req['status'] == 'approved';
-      }
-      return false;
-    }).length;
+    final int approvedRequests =
+        requests.where((req) {
+          if (req is Map<String, dynamic> && req['status'] is String) {
+            return req['status'] == 'approved';
+          }
+          return false;
+        }).length;
 
     final int availableSeats = capacity - approvedRequests;
     final bool isFull = availableSeats <= 0;
@@ -624,9 +630,7 @@ class RideSearchItem extends StatelessWidget {
     return Card(
       margin: EdgeInsets.only(bottom: 16),
       elevation: 3,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         onTap: () => onRideSelected(ride),
         borderRadius: BorderRadius.circular(16),
@@ -635,7 +639,6 @@ class RideSearchItem extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Route and Status Row
               Row(
                 children: [
                   Icon(Icons.location_on, color: Colors.orange, size: 24),
@@ -674,7 +677,6 @@ class RideSearchItem extends StatelessWidget {
               ),
               SizedBox(height: 12),
 
-              // Host and Date Info
               Container(
                 padding: EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -723,7 +725,9 @@ class RideSearchItem extends StatelessWidget {
                         if (ride['price'] != null)
                           Container(
                             padding: EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 4),
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.green[50],
                               borderRadius: BorderRadius.circular(8),
@@ -744,7 +748,6 @@ class RideSearchItem extends StatelessWidget {
                 ),
               ),
 
-              // Description (if available)
               if (ride['description'] != null &&
                   ride['description'].isNotEmpty) ...[
                 SizedBox(height: 12),
@@ -757,10 +760,7 @@ class RideSearchItem extends StatelessWidget {
                   ),
                   child: Text(
                     ride['description'],
-                    style: TextStyle(
-                      color: Colors.blue[800],
-                      fontSize: 14,
-                    ),
+                    style: TextStyle(color: Colors.blue[800], fontSize: 14),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -768,7 +768,6 @@ class RideSearchItem extends StatelessWidget {
               ],
               SizedBox(height: 12),
 
-              // Action Button
               if (isCurrentUserHost) ...[
                 Container(
                   width: double.infinity,

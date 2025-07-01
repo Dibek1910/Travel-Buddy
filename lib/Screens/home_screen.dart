@@ -18,21 +18,14 @@ class HomeScreen extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.orange.shade400,
-                    Colors.orange.shade600,
-                  ],
+                  colors: [Colors.orange.shade400, Colors.orange.shade600],
                 ),
               ),
               child: SafeArea(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.directions_car,
-                      size: 100,
-                      color: Colors.white,
-                    ),
+                    Icon(Icons.directions_car, size: 100, color: Colors.white),
                     SizedBox(height: 20),
                     Text(
                       'Travel Buddy',
@@ -111,7 +104,9 @@ class HomeScreen extends StatelessWidget {
                           child: Text(
                             'Login',
                             style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w600),
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ),
@@ -149,10 +144,7 @@ class HomeScreen extends StatelessWidget {
                   Center(
                     child: Text(
                       '🌱 Eco-friendly • 💰 Cost-effective • 👥 Social',
-                      style: TextStyle(
-                        color: Colors.grey[500],
-                        fontSize: 14,
-                      ),
+                      style: TextStyle(color: Colors.grey[500], fontSize: 14),
                     ),
                   ),
                 ],

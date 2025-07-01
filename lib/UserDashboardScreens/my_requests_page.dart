@@ -77,112 +77,109 @@ class _MyRequestsPageState extends State<MyRequestsPage> {
         centerTitle: true,
         backgroundColor: Colors.orange,
         foregroundColor: Colors.white,
-        automaticallyImplyLeading: false, // Remove back button
+        automaticallyImplyLeading: false,
         actions: [
-          IconButton(
-            icon: Icon(Icons.refresh),
-            onPressed: _loadRequests,
-          ),
+          IconButton(icon: Icon(Icons.refresh), onPressed: _loadRequests),
         ],
       ),
-      body: _isLoading
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(color: Colors.orange),
-                  SizedBox(height: 16),
-                  Text('Loading your requests...',
-                      style: TextStyle(color: Colors.grey[600])),
-                ],
-              ),
-            )
-          : _errorMessage.isNotEmpty
+      body:
+          _isLoading
               ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.error_outline,
-                          size: 80, color: Colors.red[300]),
-                      SizedBox(height: 16),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
-                        child: Text(_errorMessage,
-                            style: TextStyle(color: Colors.red),
-                            textAlign: TextAlign.center),
-                      ),
-                      SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: _loadRequests,
-                        child: Text('Try Again'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange,
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              : _requests.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.person_outline,
-                            size: 80,
-                            color: Colors.grey[400],
-                          ),
-                          SizedBox(height: 16),
-                          Text(
-                            'No ride requests yet',
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.grey[600],
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          SizedBox(height: 8),
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 20),
-                            child: Text(
-                              'Search for rides and send requests to join',
-                              style: TextStyle(
-                                color: Colors.grey[500],
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                          SizedBox(height: 20),
-                          ElevatedButton.icon(
-                            onPressed: widget.onSwitchToSearchRide,
-                            icon: Icon(Icons.search),
-                            label: Text('Search Rides'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.orange,
-                              foregroundColor: Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  : RefreshIndicator(
-                      onRefresh: _loadRequests,
-                      color: Colors.orange,
-                      child: ListView.builder(
-                        padding: EdgeInsets.all(16),
-                        itemCount: _requests.length,
-                        itemBuilder: (context, index) {
-                          return RequestItem(
-                            request: _requests[index],
-                            isCancelling:
-                                _cancellingRequests[_requests[index]['_id']] ??
-                                    false,
-                            onCancel: () =>
-                                _cancelRequest(_requests[index]['_id']),
-                          );
-                        },
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(color: Colors.orange),
+                    SizedBox(height: 16),
+                    Text(
+                      'Loading your requests...',
+                      style: TextStyle(color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
+              )
+              : _errorMessage.isNotEmpty
+              ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.error_outline, size: 80, color: Colors.red[300]),
+                    SizedBox(height: 16),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      child: Text(
+                        _errorMessage,
+                        style: TextStyle(color: Colors.red),
+                        textAlign: TextAlign.center,
                       ),
                     ),
+                    SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _loadRequests,
+                      child: Text('Try Again'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+              : _requests.isEmpty
+              ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.person_outline,
+                      size: 80,
+                      color: Colors.grey[400],
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      'No ride requests yet',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.grey[600],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      child: Text(
+                        'Search for rides and send requests to join',
+                        style: TextStyle(color: Colors.grey[500]),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    ElevatedButton.icon(
+                      onPressed: widget.onSwitchToSearchRide,
+                      icon: Icon(Icons.search),
+                      label: Text('Search Rides'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+              : RefreshIndicator(
+                onRefresh: _loadRequests,
+                color: Colors.orange,
+                child: ListView.builder(
+                  padding: EdgeInsets.all(16),
+                  itemCount: _requests.length,
+                  itemBuilder: (context, index) {
+                    return RequestItem(
+                      request: _requests[index],
+                      isCancelling:
+                          _cancellingRequests[_requests[index]['_id']] ?? false,
+                      onCancel: () => _cancelRequest(_requests[index]['_id']),
+                    );
+                  },
+                ),
+              ),
     );
   }
 
@@ -303,9 +300,7 @@ class RequestItem extends StatelessWidget {
     return Card(
       margin: EdgeInsets.only(bottom: 16),
       elevation: 3,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -318,10 +313,7 @@ class RequestItem extends StatelessWidget {
                 Expanded(
                   child: Text(
                     '${ride['from']} → ${ride['to']}',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -405,8 +397,11 @@ class RequestItem extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.attach_money,
-                        color: Colors.green[600], size: 16),
+                    Icon(
+                      Icons.attach_money,
+                      color: Colors.green[600],
+                      size: 16,
+                    ),
                     Text(
                       '₹${ride['price']}',
                       style: TextStyle(
@@ -424,18 +419,20 @@ class RequestItem extends StatelessWidget {
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: isCancelling ? null : onCancel,
-                  icon: isCancelling
-                      ? SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : Icon(Icons.cancel, size: 18),
-                  label:
-                      Text(isCancelling ? 'Cancelling...' : 'Cancel Request'),
+                  icon:
+                      isCancelling
+                          ? SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                          : Icon(Icons.cancel, size: 18),
+                  label: Text(
+                    isCancelling ? 'Cancelling...' : 'Cancel Request',
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
                     foregroundColor: Colors.white,

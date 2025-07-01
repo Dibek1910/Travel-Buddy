@@ -65,28 +65,30 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
     }
   }
 
-  // Calculate current ride statistics
   Map<String, int> _getRideStats() {
-    final pendingRequests = _requests.where((req) {
-      if (req is Map<String, dynamic> && req.containsKey('status')) {
-        return req['status'] == 'pending';
-      }
-      return false;
-    }).length;
+    final pendingRequests =
+        _requests.where((req) {
+          if (req is Map<String, dynamic> && req.containsKey('status')) {
+            return req['status'] == 'pending';
+          }
+          return false;
+        }).length;
 
-    final approvedRequests = _requests.where((req) {
-      if (req is Map<String, dynamic> && req.containsKey('status')) {
-        return req['status'] == 'approved';
-      }
-      return false;
-    }).length;
+    final approvedRequests =
+        _requests.where((req) {
+          if (req is Map<String, dynamic> && req.containsKey('status')) {
+            return req['status'] == 'approved';
+          }
+          return false;
+        }).length;
 
-    final rejectedRequests = _requests.where((req) {
-      if (req is Map<String, dynamic> && req.containsKey('status')) {
-        return req['status'] == 'rejected';
-      }
-      return false;
-    }).length;
+    final rejectedRequests =
+        _requests.where((req) {
+          if (req is Map<String, dynamic> && req.containsKey('status')) {
+            return req['status'] == 'rejected';
+          }
+          return false;
+        }).length;
 
     final capacity = _currentRideDetails['capacity'] ?? 0;
     final availableSeats = capacity - approvedRequests;
@@ -112,233 +114,257 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
         backgroundColor: Colors.orange,
         foregroundColor: Colors.white,
         actions: [
-          IconButton(
-            icon: Icon(Icons.refresh),
-            onPressed: _loadRequests,
-          ),
+          IconButton(icon: Icon(Icons.refresh), onPressed: _loadRequests),
         ],
       ),
-      body: _isLoading
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(color: Colors.orange),
-                  SizedBox(height: 16),
-                  Text('Loading requests...',
-                      style: TextStyle(color: Colors.grey[600])),
-                ],
-              ),
-            )
-          : _errorMessage.isNotEmpty
+      body:
+          _isLoading
               ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.error_outline,
-                          size: 80, color: Colors.red[300]),
-                      SizedBox(height: 16),
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 20),
-                        child: Text(_errorMessage,
-                            style: TextStyle(color: Colors.red),
-                            textAlign: TextAlign.center),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(color: Colors.orange),
+                    SizedBox(height: 16),
+                    Text(
+                      'Loading requests...',
+                      style: TextStyle(color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
+              )
+              : _errorMessage.isNotEmpty
+              ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.error_outline, size: 80, color: Colors.red[300]),
+                    SizedBox(height: 16),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      child: Text(
+                        _errorMessage,
+                        style: TextStyle(color: Colors.red),
+                        textAlign: TextAlign.center,
                       ),
-                      SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: _loadRequests,
-                        child: Text('Try Again'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange,
+                    ),
+                    SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _loadRequests,
+                      child: Text('Try Again'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+              : SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Card(
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.directions_car,
+                                    color: Colors.orange,
+                                    size: 24,
+                                  ),
+                                  SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      '${_currentRideDetails['from'] ?? 'Unknown'} → ${_currentRideDetails['to'] ?? 'Unknown'}',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.grey[800],
+                                      ),
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color:
+                                          isFull
+                                              ? Colors.red[100]
+                                              : Colors.green[100],
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color:
+                                            isFull ? Colors.red : Colors.green,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      isFull
+                                          ? 'FULL'
+                                          : '${stats['available']} SEATS LEFT',
+                                      style: TextStyle(
+                                        color:
+                                            isFull
+                                                ? Colors.red[800]
+                                                : Colors.green[800],
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 12),
+                              Container(
+                                padding: EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[50],
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.people,
+                                      color: Colors.blue[600],
+                                      size: 20,
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      'Capacity: ${stats['capacity']} | Available: ${stats['available']} | Approved: ${stats['approved']}',
+                                      style: TextStyle(
+                                        color: Colors.blue[700],
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(height: 12),
+                              Text(
+                                'Request Summary',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey[700],
+                                ),
+                              ),
+                              SizedBox(height: 12),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  _buildSummaryItem(
+                                    'Pending',
+                                    stats['pending']!,
+                                    Colors.orange,
+                                  ),
+                                  _buildSummaryItem(
+                                    'Approved',
+                                    stats['approved']!,
+                                    Colors.green,
+                                  ),
+                                  _buildSummaryItem(
+                                    'Rejected',
+                                    stats['rejected']!,
+                                    Colors.red,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
+                      SizedBox(height: 20),
+                      Text(
+                        'Passenger Requests',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey[800],
+                        ),
+                      ),
+                      if (_requests.isNotEmpty)
+                        Text(
+                          '${_requests.length} total',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 14,
+                          ),
+                        ),
+                      SizedBox(height: 16),
+                      if (_requests.isEmpty)
+                        Center(
+                          child: Column(
+                            children: [
+                              SizedBox(height: 40),
+                              Icon(
+                                Icons.inbox_outlined,
+                                size: 80,
+                                color: Colors.grey[400],
+                              ),
+                              SizedBox(height: 16),
+                              Text(
+                                'No requests yet',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.grey[600],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              SizedBox(height: 8),
+                              Text(
+                                'Requests will appear here when passengers request to join your ride',
+                                style: TextStyle(color: Colors.grey[500]),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        )
+                      else
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
+                          itemCount: _requests.length,
+                          itemBuilder: (context, index) {
+                            final request = _requests[index];
+
+                            final requestId =
+                                request is Map<String, dynamic>
+                                    ? request['_id'] ?? 'unknown_$index'
+                                    : 'unknown_$index';
+
+                            return RequestItem(
+                              request: request,
+                              isProcessing:
+                                  _processingRequests[requestId] ?? false,
+                              canApprove: stats['available']! > 0,
+                              onApprove:
+                                  () => _handleRequestAction(
+                                    requestId,
+                                    'approved',
+                                  ),
+                              onReject:
+                                  () => _handleRequestAction(
+                                    requestId,
+                                    'rejected',
+                                  ),
+                            );
+                          },
+                        ),
                     ],
                   ),
-                )
-              : SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Card(
-                          elevation: 4,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Icon(Icons.directions_car,
-                                        color: Colors.orange, size: 24),
-                                    SizedBox(width: 12),
-                                    Expanded(
-                                      child: Text(
-                                        '${_currentRideDetails['from'] ?? 'Unknown'} → ${_currentRideDetails['to'] ?? 'Unknown'}',
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.grey[800],
-                                        ),
-                                      ),
-                                    ),
-                                    Container(
-                                      padding: EdgeInsets.symmetric(
-                                          horizontal: 12, vertical: 6),
-                                      decoration: BoxDecoration(
-                                        color: isFull
-                                            ? Colors.red[100]
-                                            : Colors.green[100],
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                          color: isFull
-                                              ? Colors.red
-                                              : Colors.green,
-                                        ),
-                                      ),
-                                      child: Text(
-                                        isFull
-                                            ? 'FULL'
-                                            : '${stats['available']} SEATS LEFT',
-                                        style: TextStyle(
-                                          color: isFull
-                                              ? Colors.red[800]
-                                              : Colors.green[800],
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: 12),
-                                Container(
-                                  padding: EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey[50],
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.people,
-                                          color: Colors.blue[600], size: 20),
-                                      SizedBox(width: 8),
-                                      Text(
-                                        'Capacity: ${stats['capacity']} | Available: ${stats['available']} | Approved: ${stats['approved']}',
-                                        style: TextStyle(
-                                          color: Colors.blue[700],
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                SizedBox(height: 12),
-                                Text(
-                                  'Request Summary',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.grey[700],
-                                  ),
-                                ),
-                                SizedBox(height: 12),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    _buildSummaryItem('Pending',
-                                        stats['pending']!, Colors.orange),
-                                    _buildSummaryItem('Approved',
-                                        stats['approved']!, Colors.green),
-                                    _buildSummaryItem('Rejected',
-                                        stats['rejected']!, Colors.red),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 20),
-                        Text(
-                          'Passenger Requests',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey[800],
-                          ),
-                        ),
-                        if (_requests.isNotEmpty)
-                          Text(
-                            '${_requests.length} total',
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 14,
-                            ),
-                          ),
-                        SizedBox(height: 16),
-                        if (_requests.isEmpty)
-                          Center(
-                            child: Column(
-                              children: [
-                                SizedBox(height: 40),
-                                Icon(
-                                  Icons.inbox_outlined,
-                                  size: 80,
-                                  color: Colors.grey[400],
-                                ),
-                                SizedBox(height: 16),
-                                Text(
-                                  'No requests yet',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    color: Colors.grey[600],
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                SizedBox(height: 8),
-                                Text(
-                                  'Requests will appear here when passengers request to join your ride',
-                                  style: TextStyle(
-                                    color: Colors.grey[500],
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
-                            ),
-                          )
-                        else
-                          ListView.builder(
-                            shrinkWrap: true,
-                            physics: NeverScrollableScrollPhysics(),
-                            itemCount: _requests.length,
-                            itemBuilder: (context, index) {
-                              final request = _requests[index];
-
-                              final requestId = request is Map<String, dynamic>
-                                  ? request['_id'] ?? 'unknown_$index'
-                                  : 'unknown_$index';
-
-                              return RequestItem(
-                                request: request,
-                                isProcessing:
-                                    _processingRequests[requestId] ?? false,
-                                canApprove: stats['available']! > 0,
-                                onApprove: () =>
-                                    _handleRequestAction(requestId, 'approved'),
-                                onReject: () =>
-                                    _handleRequestAction(requestId, 'rejected'),
-                              );
-                            },
-                          ),
-                      ],
-                    ),
-                  ),
                 ),
+              ),
     );
   }
 
@@ -367,10 +393,7 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
         SizedBox(height: 8),
         Text(
           label,
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            color: color[700],
-          ),
+          style: TextStyle(fontWeight: FontWeight.w600, color: color[700]),
         ),
       ],
     );
@@ -408,7 +431,6 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
           _processingRequests[requestId] = false;
         });
 
-        // Notify parent widget about the status change
         if (widget.onRequestStatusChanged != null) {
           widget.onRequestStatusChanged!(widget.rideId, requestId, action);
         }
@@ -420,7 +442,8 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
                 Icon(Icons.check_circle, color: Colors.white),
                 SizedBox(width: 10),
                 Text(
-                    'Request ${action == 'approved' ? 'approved' : 'rejected'} successfully'),
+                  'Request ${action == 'approved' ? 'approved' : 'rejected'} successfully',
+                ),
               ],
             ),
             backgroundColor: Colors.green,
@@ -491,9 +514,10 @@ class RequestItem extends StatelessWidget {
 
     final Map<String, dynamic> requestData = request as Map<String, dynamic>;
     final passenger = requestData['passenger'];
-    final passengerName = passenger is Map<String, dynamic>
-        ? passenger['firstName'] ?? 'Unknown'
-        : 'Unknown';
+    final passengerName =
+        passenger is Map<String, dynamic>
+            ? passenger['firstName'] ?? 'Unknown'
+            : 'Unknown';
     final status = requestData['status'] ?? 'pending';
 
     String requestDate = '';
@@ -530,9 +554,7 @@ class RequestItem extends StatelessWidget {
     return Card(
       margin: EdgeInsets.only(bottom: 12),
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -611,21 +633,24 @@ class RequestItem extends StatelessWidget {
                     child: ElevatedButton.icon(
                       onPressed:
                           (isProcessing || !canApprove) ? null : onApprove,
-                      icon: isProcessing
-                          ? SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : Icon(Icons.check, size: 18),
-                      label: Text(isProcessing
-                          ? 'Processing...'
-                          : !canApprove
-                              ? 'Ride Full'
-                              : 'Accept'),
+                      icon:
+                          isProcessing
+                              ? SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                              : Icon(Icons.check, size: 18),
+                      label: Text(
+                        isProcessing
+                            ? 'Processing...'
+                            : !canApprove
+                            ? 'Ride Full'
+                            : 'Accept',
+                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor:
                             !canApprove ? Colors.grey : Colors.green,
@@ -641,16 +666,17 @@ class RequestItem extends StatelessWidget {
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed: isProcessing ? null : onReject,
-                      icon: isProcessing
-                          ? SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : Icon(Icons.close, size: 18),
+                      icon:
+                          isProcessing
+                              ? SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                              : Icon(Icons.close, size: 18),
                       label: Text(isProcessing ? 'Processing...' : 'Reject'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,

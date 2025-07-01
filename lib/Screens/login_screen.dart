@@ -28,10 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Login'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: Text('Login'), centerTitle: true),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -39,11 +36,7 @@ class _LoginScreenState extends State<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 40.0),
-              Icon(
-                Icons.account_circle,
-                size: 80,
-                color: Colors.orange,
-              ),
+              Icon(Icons.account_circle, size: 80, color: Colors.orange),
               const SizedBox(height: 20.0),
               Text(
                 'Welcome Back',
@@ -58,11 +51,12 @@ class _LoginScreenState extends State<LoginScreen> {
               Text(
                 _message,
                 style: TextStyle(
-                  color: _message.contains('error') ||
-                          _message.contains('failed') ||
-                          _message.contains('Invalid')
-                      ? Colors.red
-                      : Colors.grey[600],
+                  color:
+                      _message.contains('error') ||
+                              _message.contains('failed') ||
+                              _message.contains('Invalid')
+                          ? Colors.red
+                          : Colors.grey[600],
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -87,8 +81,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12.0),
-                            borderSide:
-                                BorderSide(color: Colors.orange, width: 2),
+                            borderSide: BorderSide(
+                              color: Colors.orange,
+                              width: 2,
+                            ),
                           ),
                         ),
                       ),
@@ -117,8 +113,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12.0),
-                            borderSide:
-                                BorderSide(color: Colors.orange, width: 2),
+                            borderSide: BorderSide(
+                              color: Colors.orange,
+                              width: 2,
+                            ),
                           ),
                         ),
                       ),
@@ -130,8 +128,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) =>
-                                    const ForgotPasswordScreen(),
+                                builder:
+                                    (context) => const ForgotPasswordScreen(),
                               ),
                             );
                           },
@@ -151,11 +149,16 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           minimumSize: Size(double.infinity, 50),
                         ),
-                        child: _isLoading
-                            ? CircularProgressIndicator(color: Colors.white)
-                            : Text('Login',
-                                style: TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.w600)),
+                        child:
+                            _isLoading
+                                ? CircularProgressIndicator(color: Colors.white)
+                                : Text(
+                                  'Login',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                       ),
                     ],
                   ),
@@ -170,15 +173,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                          builder: (context) => SignupScreen(),
-                        ),
+                        MaterialPageRoute(builder: (context) => SignupScreen()),
                       );
                     },
                     child: Text(
                       'Sign Up',
                       style: TextStyle(
-                          color: Colors.orange, fontWeight: FontWeight.w600),
+                        color: Colors.orange,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],
@@ -206,15 +209,15 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final result = await AuthService.login(
-          _emailController.text, _passwordController.text);
+        _emailController.text,
+        _passwordController.text,
+      );
 
       if (result['success']) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => UserDashboard(
-              authToken: result['token'],
-            ),
+            builder: (context) => UserDashboard(authToken: result['token']),
           ),
         );
       } else {

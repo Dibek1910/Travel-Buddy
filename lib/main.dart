@@ -45,9 +45,10 @@ class MyApp extends StatelessWidget {
         ),
       ),
       debugShowCheckedModeBanner: false,
-      home: authToken != null
-          ? UserDashboard(authToken: authToken!)
-          : HomeScreen(),
+      home:
+          authToken != null
+              ? UserDashboard(authToken: authToken!)
+              : HomeScreen(),
       routes: {
         '/home': (context) => HomeScreen(),
         '/login': (context) => LoginScreen(),

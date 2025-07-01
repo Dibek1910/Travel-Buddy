@@ -7,7 +7,7 @@ class RideDetailsScreen extends StatefulWidget {
   final dynamic rideDetails;
 
   const RideDetailsScreen({Key? key, required this.rideDetails})
-      : super(key: key);
+    : super(key: key);
 
   @override
   _RideDetailsScreenState createState() => _RideDetailsScreenState();
@@ -48,23 +48,25 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
     final int capacity = ride['capacity'] ?? 0;
     final List requests = ride['requests'] ?? [];
 
-    final int approvedRequests = requests.where((req) {
-      if (req is Map<String, dynamic> &&
-          req.containsKey('status') &&
-          req['status'] is String) {
-        return req['status'] == 'approved';
-      }
-      return false;
-    }).length;
+    final int approvedRequests =
+        requests.where((req) {
+          if (req is Map<String, dynamic> &&
+              req.containsKey('status') &&
+              req['status'] is String) {
+            return req['status'] == 'approved';
+          }
+          return false;
+        }).length;
 
-    final int pendingRequests = requests.where((req) {
-      if (req is Map<String, dynamic> &&
-          req.containsKey('status') &&
-          req['status'] is String) {
-        return req['status'] == 'pending';
-      }
-      return false;
-    }).length;
+    final int pendingRequests =
+        requests.where((req) {
+          if (req is Map<String, dynamic> &&
+              req.containsKey('status') &&
+              req['status'] is String) {
+            return req['status'] == 'pending';
+          }
+          return false;
+        }).length;
 
     final int availableSeats = capacity - approvedRequests;
     final bool isFull = availableSeats <= 0;
@@ -73,8 +75,9 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
     if (ride['date'] != null) {
       try {
         final date = DateTime.parse(ride['date']);
-        formattedDateTime =
-            DateFormat('EEEE, MMM dd, yyyy - HH:mm').format(date);
+        formattedDateTime = DateFormat(
+          'EEEE, MMM dd, yyyy - HH:mm',
+        ).format(date);
       } catch (e) {
         formattedDateTime = ride['date'].toString();
       }
@@ -123,8 +126,11 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.location_on,
-                              color: Colors.orange, size: 28),
+                          Icon(
+                            Icons.location_on,
+                            color: Colors.orange,
+                            size: 28,
+                          ),
                           SizedBox(width: 12),
                           Expanded(
                             child: Text(
@@ -138,7 +144,9 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                           ),
                           Container(
                             padding: EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 6),
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
                               color:
                                   isFull ? Colors.red[100] : Colors.green[100],
@@ -150,9 +158,10 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                             child: Text(
                               isFull ? 'FULL' : '$availableSeats SEATS',
                               style: TextStyle(
-                                color: isFull
-                                    ? Colors.red[800]
-                                    : Colors.green[800],
+                                color:
+                                    isFull
+                                        ? Colors.red[800]
+                                        : Colors.green[800],
                                 fontWeight: FontWeight.bold,
                                 fontSize: 12,
                               ),
@@ -170,8 +179,11 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.schedule,
-                                color: Colors.blue[700], size: 24),
+                            Icon(
+                              Icons.schedule,
+                              color: Colors.blue[700],
+                              size: 24,
+                            ),
                             SizedBox(width: 12),
                             Expanded(
                               child: Text(
@@ -262,16 +274,28 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                         ),
                       ),
                       SizedBox(height: 16),
-                      _buildDetailRow(Icons.people, 'Total Capacity',
-                          '${ride['capacity']} passengers'),
-                      _buildDetailRow(Icons.people_outline, 'Available Seats',
-                          '$availableSeats seats'),
+                      _buildDetailRow(
+                        Icons.people,
+                        'Total Capacity',
+                        '${ride['capacity']} passengers',
+                      ),
+                      _buildDetailRow(
+                        Icons.people_outline,
+                        'Available Seats',
+                        '$availableSeats seats',
+                      ),
                       if (ride['price'] != null)
-                        _buildDetailRow(Icons.attach_money, 'Price per seat',
-                            '₹${ride['price']}'),
+                        _buildDetailRow(
+                          Icons.attach_money,
+                          'Price per seat',
+                          '₹${ride['price']}',
+                        ),
                       if (ride['phoneNo'] != null)
                         _buildDetailRow(
-                            Icons.phone, 'Contact', '${ride['phoneNo']}'),
+                          Icons.phone,
+                          'Contact',
+                          '${ride['phoneNo']}',
+                        ),
                       if (ride['description'] != null &&
                           ride['description'].toString().isNotEmpty) ...[
                         SizedBox(height: 12),
@@ -327,8 +351,11 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                         SizedBox(height: 12),
                         Row(
                           children: [
-                            Icon(Icons.people_outline,
-                                color: Colors.blue[600], size: 20),
+                            Icon(
+                              Icons.people_outline,
+                              color: Colors.blue[600],
+                              size: 20,
+                            ),
                             SizedBox(width: 8),
                             Expanded(
                               child: Text(
@@ -345,10 +372,16 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                         Row(
                           children: [
                             _buildStatusChip(
-                                'Pending', pendingRequests, Colors.orange),
+                              'Pending',
+                              pendingRequests,
+                              Colors.orange,
+                            ),
                             SizedBox(width: 8),
                             _buildStatusChip(
-                                'Approved', approvedRequests, Colors.green),
+                              'Approved',
+                              approvedRequests,
+                              Colors.green,
+                            ),
                           ],
                         ),
                       ],
@@ -386,22 +419,24 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: _isLoading
-                          ? null
-                          : () => _requestToJoinRide(ride['_id']),
-                      icon: _isLoading
-                          ? SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
-                          : Icon(Icons.send),
-                      label: Text(_isLoading
-                          ? 'Sending Request...'
-                          : 'Request to Join'),
+                      onPressed:
+                          _isLoading
+                              ? null
+                              : () => _requestToJoinRide(ride['_id']),
+                      icon:
+                          _isLoading
+                              ? SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                              : Icon(Icons.send),
+                      label: Text(
+                        _isLoading ? 'Sending Request...' : 'Request to Join',
+                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.orange,
                         foregroundColor: Colors.white,
@@ -485,12 +520,7 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
             ),
           ),
           Expanded(
-            child: Text(
-              value,
-              style: TextStyle(
-                color: Colors.grey[800],
-              ),
-            ),
+            child: Text(value, style: TextStyle(color: Colors.grey[800])),
           ),
         ],
       ),

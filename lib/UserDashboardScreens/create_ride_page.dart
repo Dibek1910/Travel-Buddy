@@ -64,8 +64,11 @@ class _CreateRidePageState extends State<CreateRidePage> {
                         children: [
                           Row(
                             children: [
-                              Icon(Icons.add_circle,
-                                  color: Colors.orange, size: 28),
+                              Icon(
+                                Icons.add_circle,
+                                color: Colors.orange,
+                                size: 28,
+                              ),
                               SizedBox(width: 12),
                               Expanded(
                                 child: Text(
@@ -157,15 +160,19 @@ class _CreateRidePageState extends State<CreateRidePage> {
                                   controller: _dateController,
                                   decoration: InputDecoration(
                                     labelText: 'Date',
-                                    prefixIcon: Icon(Icons.calendar_today,
-                                        color: Colors.orange),
+                                    prefixIcon: Icon(
+                                      Icons.calendar_today,
+                                      color: Colors.orange,
+                                    ),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12.0),
                                     ),
                                     focusedBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12.0),
                                       borderSide: BorderSide(
-                                          color: Colors.orange, width: 2),
+                                        color: Colors.orange,
+                                        width: 2,
+                                      ),
                                     ),
                                   ),
                                   readOnly: true,
@@ -184,15 +191,19 @@ class _CreateRidePageState extends State<CreateRidePage> {
                                   controller: _timeController,
                                   decoration: InputDecoration(
                                     labelText: 'Time',
-                                    prefixIcon: Icon(Icons.access_time,
-                                        color: Colors.orange),
+                                    prefixIcon: Icon(
+                                      Icons.access_time,
+                                      color: Colors.orange,
+                                    ),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12.0),
                                     ),
                                     focusedBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12.0),
                                       borderSide: BorderSide(
-                                          color: Colors.orange, width: 2),
+                                        color: Colors.orange,
+                                        width: 2,
+                                      ),
                                     ),
                                   ),
                                   readOnly: true,
@@ -239,15 +250,19 @@ class _CreateRidePageState extends State<CreateRidePage> {
                                   keyboardType: TextInputType.number,
                                   decoration: InputDecoration(
                                     labelText: 'Available Seats',
-                                    prefixIcon: Icon(Icons.people,
-                                        color: Colors.orange),
+                                    prefixIcon: Icon(
+                                      Icons.people,
+                                      color: Colors.orange,
+                                    ),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12.0),
                                     ),
                                     focusedBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12.0),
                                       borderSide: BorderSide(
-                                          color: Colors.orange, width: 2),
+                                        color: Colors.orange,
+                                        width: 2,
+                                      ),
                                     ),
                                   ),
                                   validator: (value) {
@@ -271,15 +286,19 @@ class _CreateRidePageState extends State<CreateRidePage> {
                                   keyboardType: TextInputType.number,
                                   decoration: InputDecoration(
                                     labelText: 'Price per seat (₹)',
-                                    prefixIcon: Icon(Icons.attach_money,
-                                        color: Colors.orange),
+                                    prefixIcon: Icon(
+                                      Icons.attach_money,
+                                      color: Colors.orange,
+                                    ),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12.0),
                                     ),
                                     focusedBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12.0),
                                       borderSide: BorderSide(
-                                          color: Colors.orange, width: 2),
+                                        color: Colors.orange,
+                                        width: 2,
+                                      ),
                                     ),
                                   ),
                                   validator: (value) {
@@ -301,15 +320,19 @@ class _CreateRidePageState extends State<CreateRidePage> {
                             keyboardType: TextInputType.phone,
                             decoration: InputDecoration(
                               labelText: 'Contact Number',
-                              prefixIcon:
-                                  Icon(Icons.phone, color: Colors.orange),
+                              prefixIcon: Icon(
+                                Icons.phone,
+                                color: Colors.orange,
+                              ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12.0),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12.0),
-                                borderSide:
-                                    BorderSide(color: Colors.orange, width: 2),
+                                borderSide: BorderSide(
+                                  color: Colors.orange,
+                                  width: 2,
+                                ),
                               ),
                             ),
                             validator: (value) {
@@ -328,15 +351,19 @@ class _CreateRidePageState extends State<CreateRidePage> {
                             maxLines: 3,
                             decoration: InputDecoration(
                               labelText: 'Description (Optional)',
-                              prefixIcon:
-                                  Icon(Icons.description, color: Colors.orange),
+                              prefixIcon: Icon(
+                                Icons.description,
+                                color: Colors.orange,
+                              ),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12.0),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12.0),
-                                borderSide:
-                                    BorderSide(color: Colors.orange, width: 2),
+                                borderSide: BorderSide(
+                                  color: Colors.orange,
+                                  width: 2,
+                                ),
                               ),
                               hintText:
                                   'Add any additional details about your ride...',
@@ -358,36 +385,37 @@ class _CreateRidePageState extends State<CreateRidePage> {
                         ),
                         elevation: 4,
                       ),
-                      child: _isLoading
-                          ? Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
+                      child:
+                          _isLoading
+                              ? Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
                                   ),
-                                ),
-                                SizedBox(width: 12),
-                                Text('Creating Ride...'),
-                              ],
-                            )
-                          : Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.add_circle),
-                                SizedBox(width: 8),
-                                Text(
-                                  'Create Ride',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
+                                  SizedBox(width: 12),
+                                  Text('Creating Ride...'),
+                                ],
+                              )
+                              : Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.add_circle),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Create Ride',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
+                                ],
+                              ),
                     ),
                   ),
                   SizedBox(height: 20),
@@ -481,9 +509,10 @@ class _CreateRidePageState extends State<CreateRidePage> {
         'to': _toController.text.trim(),
         'date': rideDateTime.toIso8601String(),
         'capacity': int.parse(_capacityController.text),
-        'price': _priceController.text.isNotEmpty
-            ? double.parse(_priceController.text)
-            : null,
+        'price':
+            _priceController.text.isNotEmpty
+                ? double.parse(_priceController.text)
+                : null,
         'phoneNo': _phoneController.text.trim(),
         'description': _descriptionController.text.trim(),
       };
@@ -526,7 +555,8 @@ class _CreateRidePageState extends State<CreateRidePage> {
                 Icon(Icons.error, color: Colors.white),
                 SizedBox(width: 10),
                 Expanded(
-                    child: Text(result['message'] ?? 'Failed to create ride')),
+                  child: Text(result['message'] ?? 'Failed to create ride'),
+                ),
               ],
             ),
             backgroundColor: Colors.red,

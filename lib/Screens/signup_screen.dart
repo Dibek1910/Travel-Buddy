@@ -36,10 +36,7 @@ class _SignupScreenState extends State<SignupScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Colors.orange.shade400,
-              Colors.orange.shade600,
-            ],
+            colors: [Colors.orange.shade400, Colors.orange.shade600],
           ),
         ),
         child: SafeArea(
@@ -90,15 +87,19 @@ class _SignupScreenState extends State<SignupScreen> {
                           controller: _firstNameController,
                           decoration: InputDecoration(
                             labelText: 'Full Name',
-                            prefixIcon:
-                                Icon(Icons.person, color: Colors.orange),
+                            prefixIcon: Icon(
+                              Icons.person,
+                              color: Colors.orange,
+                            ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12.0),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12.0),
-                              borderSide:
-                                  BorderSide(color: Colors.orange, width: 2),
+                              borderSide: BorderSide(
+                                color: Colors.orange,
+                                width: 2,
+                              ),
                             ),
                           ),
                           validator: (value) {
@@ -123,16 +124,19 @@ class _SignupScreenState extends State<SignupScreen> {
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12.0),
-                              borderSide:
-                                  BorderSide(color: Colors.orange, width: 2),
+                              borderSide: BorderSide(
+                                color: Colors.orange,
+                                width: 2,
+                              ),
                             ),
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
                               return 'Please enter your email';
                             }
-                            if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                                .hasMatch(value)) {
+                            if (!RegExp(
+                              r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                            ).hasMatch(value)) {
                               return 'Please enter a valid email';
                             }
                             return null;
@@ -163,8 +167,10 @@ class _SignupScreenState extends State<SignupScreen> {
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12.0),
-                              borderSide:
-                                  BorderSide(color: Colors.orange, width: 2),
+                              borderSide: BorderSide(
+                                color: Colors.orange,
+                                width: 2,
+                              ),
                             ),
                           ),
                           validator: (value) {
@@ -183,8 +189,10 @@ class _SignupScreenState extends State<SignupScreen> {
                           obscureText: _obscureConfirmPassword,
                           decoration: InputDecoration(
                             labelText: 'Confirm Password',
-                            prefixIcon:
-                                Icon(Icons.lock_outline, color: Colors.orange),
+                            prefixIcon: Icon(
+                              Icons.lock_outline,
+                              color: Colors.orange,
+                            ),
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _obscureConfirmPassword
@@ -204,8 +212,10 @@ class _SignupScreenState extends State<SignupScreen> {
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12.0),
-                              borderSide:
-                                  BorderSide(color: Colors.orange, width: 2),
+                              borderSide: BorderSide(
+                                color: Colors.orange,
+                                width: 2,
+                              ),
                             ),
                           ),
                           validator: (value) {
@@ -224,22 +234,25 @@ class _SignupScreenState extends State<SignupScreen> {
                             padding: EdgeInsets.all(12),
                             margin: EdgeInsets.only(bottom: 16),
                             decoration: BoxDecoration(
-                              color: _message.contains('success')
-                                  ? Colors.green[50]
-                                  : Colors.red[50],
+                              color:
+                                  _message.contains('success')
+                                      ? Colors.green[50]
+                                      : Colors.red[50],
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
-                                color: _message.contains('success')
-                                    ? Colors.green
-                                    : Colors.red,
+                                color:
+                                    _message.contains('success')
+                                        ? Colors.green
+                                        : Colors.red,
                               ),
                             ),
                             child: Text(
                               _message,
                               style: TextStyle(
-                                color: _message.contains('success')
-                                    ? Colors.green[800]
-                                    : Colors.red[800],
+                                color:
+                                    _message.contains('success')
+                                        ? Colors.green[800]
+                                        : Colors.red[800],
                               ),
                             ),
                           ),
@@ -254,36 +267,39 @@ class _SignupScreenState extends State<SignupScreen> {
                               ),
                               elevation: 4,
                             ),
-                            child: _isLoading
-                                ? Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(
-                                          color: Colors.white,
-                                          strokeWidth: 2,
+                            child:
+                                _isLoading
+                                    ? Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(
+                                            color: Colors.white,
+                                            strokeWidth: 2,
+                                          ),
                                         ),
-                                      ),
-                                      SizedBox(width: 12),
-                                      Text('Creating Account...'),
-                                    ],
-                                  )
-                                : Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(Icons.person_add),
-                                      SizedBox(width: 8),
-                                      Text(
-                                        'Create Account',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
+                                        SizedBox(width: 12),
+                                        Text('Creating Account...'),
+                                      ],
+                                    )
+                                    : Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(Icons.person_add),
+                                        SizedBox(width: 8),
+                                        Text(
+                                          'Create Account',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
+                                      ],
+                                    ),
                           ),
                         ),
                         SizedBox(height: 24),

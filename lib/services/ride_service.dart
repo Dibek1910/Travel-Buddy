@@ -5,14 +5,12 @@ import 'package:travel_buddy/services/auth_service.dart';
 
 class RideService {
   static Future<Map<String, dynamic>> createRide(
-      Map<String, dynamic> rideData) async {
+    Map<String, dynamic> rideData,
+  ) async {
     try {
       final authToken = await AuthService.getAuthToken();
       if (authToken == null) {
-        return {
-          'success': false,
-          'message': 'No authentication token found',
-        };
+        return {'success': false, 'message': 'No authentication token found'};
       }
 
       final response = await http.post(
@@ -31,22 +29,19 @@ class RideService {
         'ride': responseData['ride'],
       };
     } catch (error) {
-      return {
-        'success': false,
-        'message': 'Network error: $error',
-      };
+      return {'success': false, 'message': 'Network error: $error'};
     }
   }
 
   static Future<Map<String, dynamic>> searchRides(
-      String? from, String? to, String? date) async {
+    String? from,
+    String? to,
+    String? date,
+  ) async {
     try {
       final authToken = await AuthService.getAuthToken();
       if (authToken == null) {
-        return {
-          'success': false,
-          'message': 'No authentication token found',
-        };
+        return {'success': false, 'message': 'No authentication token found'};
       }
 
       Map<String, dynamic> requestBody = {};
@@ -65,24 +60,26 @@ class RideService {
 
       final responseData = jsonDecode(response.body);
 
-      // Filter out full rides on the frontend
       List<dynamic> rides = responseData['rides'] ?? [];
-      List<dynamic> availableRides = rides.where((ride) {
-        if (ride is Map<String, dynamic>) {
-          final int capacity = ride['capacity'] ?? 0;
-          final List requests = ride['requests'] ?? [];
-          final int approvedRequests = requests.where((req) {
-            if (req is Map<String, dynamic> && req['status'] is String) {
-              return req['status'] == 'approved';
+      List<dynamic> availableRides =
+          rides.where((ride) {
+            if (ride is Map<String, dynamic>) {
+              final int capacity = ride['capacity'] ?? 0;
+              final List requests = ride['requests'] ?? [];
+              final int approvedRequests =
+                  requests.where((req) {
+                    if (req is Map<String, dynamic> &&
+                        req['status'] is String) {
+                      return req['status'] == 'approved';
+                    }
+                    return false;
+                  }).length;
+
+              final int availableSeats = capacity - approvedRequests;
+              return availableSeats > 0;
             }
             return false;
-          }).length;
-
-          final int availableSeats = capacity - approvedRequests;
-          return availableSeats > 0; // Only show rides with available seats
-        }
-        return false;
-      }).toList();
+          }).toList();
 
       return {
         'success': responseData['success'],
@@ -90,10 +87,7 @@ class RideService {
         'rides': availableRides,
       };
     } catch (error) {
-      return {
-        'success': false,
-        'message': 'Network error: $error',
-      };
+      return {'success': false, 'message': 'Network error: $error'};
     }
   }
 
@@ -101,10 +95,7 @@ class RideService {
     try {
       final authToken = await AuthService.getAuthToken();
       if (authToken == null) {
-        return {
-          'success': false,
-          'message': 'No authentication token found',
-        };
+        return {'success': false, 'message': 'No authentication token found'};
       }
 
       final response = await http.post(
@@ -122,10 +113,7 @@ class RideService {
         'message': responseData['message'],
       };
     } catch (error) {
-      return {
-        'success': false,
-        'message': 'Network error: $error',
-      };
+      return {'success': false, 'message': 'Network error: $error'};
     }
   }
 
@@ -133,10 +121,7 @@ class RideService {
     try {
       final authToken = await AuthService.getAuthToken();
       if (authToken == null) {
-        return {
-          'success': false,
-          'message': 'No authentication token found',
-        };
+        return {'success': false, 'message': 'No authentication token found'};
       }
 
       final response = await http.get(
@@ -154,10 +139,7 @@ class RideService {
         'rides': responseData['rides'],
       };
     } catch (error) {
-      return {
-        'success': false,
-        'message': 'Network error: $error',
-      };
+      return {'success': false, 'message': 'Network error: $error'};
     }
   }
 
@@ -165,10 +147,7 @@ class RideService {
     try {
       final authToken = await AuthService.getAuthToken();
       if (authToken == null) {
-        return {
-          'success': false,
-          'message': 'No authentication token found',
-        };
+        return {'success': false, 'message': 'No authentication token found'};
       }
 
       final response = await http.get(
@@ -186,10 +165,7 @@ class RideService {
         'requests': responseData['requests'],
       };
     } catch (error) {
-      return {
-        'success': false,
-        'message': 'Network error: $error',
-      };
+      return {'success': false, 'message': 'Network error: $error'};
     }
   }
 
@@ -197,10 +173,7 @@ class RideService {
     try {
       final authToken = await AuthService.getAuthToken();
       if (authToken == null) {
-        return {
-          'success': false,
-          'message': 'No authentication token found',
-        };
+        return {'success': false, 'message': 'No authentication token found'};
       }
 
       final response = await http.get(
@@ -218,22 +191,19 @@ class RideService {
         'rideDetails': responseData['rideDetails'],
       };
     } catch (error) {
-      return {
-        'success': false,
-        'message': 'Network error: $error',
-      };
+      return {'success': false, 'message': 'Network error: $error'};
     }
   }
 
   static Future<Map<String, dynamic>> updateRideRequestStatus(
-      String rideId, String requestId, String status) async {
+    String rideId,
+    String requestId,
+    String status,
+  ) async {
     try {
       final authToken = await AuthService.getAuthToken();
       if (authToken == null) {
-        return {
-          'success': false,
-          'message': 'No authentication token found',
-        };
+        return {'success': false, 'message': 'No authentication token found'};
       }
 
       final response = await http.post(
@@ -242,10 +212,7 @@ class RideService {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $authToken',
         },
-        body: jsonEncode({
-          'requestId': requestId,
-          'status': status,
-        }),
+        body: jsonEncode({'requestId': requestId, 'status': status}),
       );
 
       final responseData = jsonDecode(response.body);
@@ -254,22 +221,17 @@ class RideService {
         'message': responseData['message'],
       };
     } catch (error) {
-      return {
-        'success': false,
-        'message': 'Network error: $error',
-      };
+      return {'success': false, 'message': 'Network error: $error'};
     }
   }
 
   static Future<Map<String, dynamic>> cancelRideRequest(
-      String requestId) async {
+    String requestId,
+  ) async {
     try {
       final authToken = await AuthService.getAuthToken();
       if (authToken == null) {
-        return {
-          'success': false,
-          'message': 'No authentication token found',
-        };
+        return {'success': false, 'message': 'No authentication token found'};
       }
 
       final response = await http.post(
@@ -287,22 +249,18 @@ class RideService {
         'message': responseData['message'],
       };
     } catch (error) {
-      return {
-        'success': false,
-        'message': 'Network error: $error',
-      };
+      return {'success': false, 'message': 'Network error: $error'};
     }
   }
 
   static Future<Map<String, dynamic>> updateRideDetails(
-      String rideId, Map<String, dynamic> rideData) async {
+    String rideId,
+    Map<String, dynamic> rideData,
+  ) async {
     try {
       final authToken = await AuthService.getAuthToken();
       if (authToken == null) {
-        return {
-          'success': false,
-          'message': 'No authentication token found',
-        };
+        return {'success': false, 'message': 'No authentication token found'};
       }
 
       final requestBody = Map<String, dynamic>.from(rideData);
@@ -324,10 +282,7 @@ class RideService {
         'ride': responseData['ride'],
       };
     } catch (error) {
-      return {
-        'success': false,
-        'message': 'Network error: $error',
-      };
+      return {'success': false, 'message': 'Network error: $error'};
     }
   }
 
@@ -335,10 +290,7 @@ class RideService {
     try {
       final authToken = await AuthService.getAuthToken();
       if (authToken == null) {
-        return {
-          'success': false,
-          'message': 'No authentication token found',
-        };
+        return {'success': false, 'message': 'No authentication token found'};
       }
 
       final response = await http.post(
@@ -356,10 +308,7 @@ class RideService {
         'message': responseData['message'],
       };
     } catch (error) {
-      return {
-        'success': false,
-        'message': 'Network error: $error',
-      };
+      return {'success': false, 'message': 'Network error: $error'};
     }
   }
 }

@@ -8,10 +8,7 @@ class UserService {
     try {
       final authToken = await AuthService.getAuthToken();
       if (authToken == null) {
-        return {
-          'success': false,
-          'message': 'No authentication token found',
-        };
+        return {'success': false, 'message': 'No authentication token found'};
       }
 
       final response = await http.get(
@@ -25,10 +22,7 @@ class UserService {
       final responseData = jsonDecode(response.body);
 
       if (response.statusCode == 200 && responseData['success']) {
-        return {
-          'success': true,
-          'userProfile': responseData['userProfile'],
-        };
+        return {'success': true, 'userProfile': responseData['userProfile']};
       } else {
         return {
           'success': false,
@@ -36,22 +30,17 @@ class UserService {
         };
       }
     } catch (error) {
-      return {
-        'success': false,
-        'message': 'Network error: $error',
-      };
+      return {'success': false, 'message': 'Network error: $error'};
     }
   }
 
   static Future<Map<String, dynamic>> updateUserProfile(
-      Map<String, dynamic> profileData) async {
+    Map<String, dynamic> profileData,
+  ) async {
     try {
       final authToken = await AuthService.getAuthToken();
       if (authToken == null) {
-        return {
-          'success': false,
-          'message': 'No authentication token found',
-        };
+        return {'success': false, 'message': 'No authentication token found'};
       }
 
       final response = await http.put(
@@ -70,10 +59,7 @@ class UserService {
         'userProfile': responseData['userProfile'],
       };
     } catch (error) {
-      return {
-        'success': false,
-        'message': 'Network error: $error',
-      };
+      return {'success': false, 'message': 'Network error: $error'};
     }
   }
 }

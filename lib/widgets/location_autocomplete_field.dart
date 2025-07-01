@@ -99,19 +99,20 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
               borderRadius: BorderRadius.circular(12.0),
               borderSide: BorderSide(color: Colors.orange, width: 2),
             ),
-            suffixIcon: _controller.text.isNotEmpty
-                ? IconButton(
-                    icon: const Icon(Icons.clear),
-                    onPressed: () {
-                      _controller.clear();
-                      widget.onLocationSelected('');
-                      setState(() {
-                        _showSuggestions = false;
-                        _predictions = [];
-                      });
-                    },
-                  )
-                : null,
+            suffixIcon:
+                _controller.text.isNotEmpty
+                    ? IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        _controller.clear();
+                        widget.onLocationSelected('');
+                        setState(() {
+                          _showSuggestions = false;
+                          _predictions = [];
+                        });
+                      },
+                    )
+                    : null,
           ),
           onChanged: _onTextChanged,
           onTap: () {
@@ -138,56 +139,58 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
                 ),
               ],
             ),
-            child: _isLoading
-                ? Container(
-                    height: 60,
-                    child: Center(
-                      child: CircularProgressIndicator(
-                        color: Colors.orange,
-                        strokeWidth: 2,
-                      ),
-                    ),
-                  )
-                : ListView.separated(
-                    shrinkWrap: true,
-                    itemCount: _predictions.length,
-                    separatorBuilder: (context, index) => Divider(height: 1),
-                    itemBuilder: (context, index) {
-                      final prediction = _predictions[index];
-                      return ListTile(
-                        dense: true,
-                        leading: Icon(
-                          Icons.location_on,
+            child:
+                _isLoading
+                    ? Container(
+                      height: 60,
+                      child: Center(
+                        child: CircularProgressIndicator(
                           color: Colors.orange,
-                          size: 20,
+                          strokeWidth: 2,
                         ),
-                        title: Text(
-                          prediction.mainText,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            fontSize: 14,
+                      ),
+                    )
+                    : ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: _predictions.length,
+                      separatorBuilder: (context, index) => Divider(height: 1),
+                      itemBuilder: (context, index) {
+                        final prediction = _predictions[index];
+                        return ListTile(
+                          dense: true,
+                          leading: Icon(
+                            Icons.location_on,
+                            color: Colors.orange,
+                            size: 20,
                           ),
-                        ),
-                        subtitle: prediction.secondaryText.isNotEmpty
-                            ? Text(
-                                prediction.secondaryText,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[600],
-                                ),
-                              )
-                            : null,
-                        onTap: () {
-                          _controller.text = prediction.description;
-                          widget.onLocationSelected(prediction.description);
-                          setState(() {
-                            _showSuggestions = false;
-                          });
-                          _focusNode.unfocus();
-                        },
-                      );
-                    },
-                  ),
+                          title: Text(
+                            prediction.mainText,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 14,
+                            ),
+                          ),
+                          subtitle:
+                              prediction.secondaryText.isNotEmpty
+                                  ? Text(
+                                    prediction.secondaryText,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey[600],
+                                    ),
+                                  )
+                                  : null,
+                          onTap: () {
+                            _controller.text = prediction.description;
+                            widget.onLocationSelected(prediction.description);
+                            setState(() {
+                              _showSuggestions = false;
+                            });
+                            _focusNode.unfocus();
+                          },
+                        );
+                      },
+                    ),
           ),
       ],
     );
