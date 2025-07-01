@@ -67,6 +67,31 @@ class _MyRidesPageState extends State<MyRidesPage> {
     }
   }
 
+  // Method to update ride data when request status changes
+  void _updateRideData(String rideId, String requestId, String newStatus) {
+    setState(() {
+      final rideIndex =
+          _createdRides.indexWhere((ride) => ride['_id'] == rideId);
+      if (rideIndex != -1) {
+        final ride = _createdRides[rideIndex];
+        final requests = List.from(ride['requests'] ?? []);
+
+        // Find and update the specific request
+        final requestIndex =
+            requests.indexWhere((req) => req['_id'] == requestId);
+        if (requestIndex != -1) {
+          requests[requestIndex]['status'] = newStatus;
+
+          // Update the ride with new requests
+          _createdRides[rideIndex] = {
+            ...ride,
+            'requests': requests,
+          };
+        }
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -75,6 +100,7 @@ class _MyRidesPageState extends State<MyRidesPage> {
         centerTitle: true,
         backgroundColor: Colors.orange,
         foregroundColor: Colors.white,
+        automaticallyImplyLeading: false,
         actions: [
           IconButton(
             icon: Icon(Icons.refresh),
@@ -191,6 +217,7 @@ class _MyRidesPageState extends State<MyRidesPage> {
                     builder: (context) => RideRequestManagementPage(
                       rideId: ride['_id'],
                       rideDetails: rideDetails['rideDetails'],
+                      onRequestStatusChanged: _updateRideData,
                     ),
                   ),
                 ).then((_) {
@@ -248,6 +275,7 @@ class CreatedRideItem extends StatelessWidget {
 
     final int capacity = ride['capacity'] ?? 0;
     final int availableSeats = capacity - approvedRequests;
+    final bool isFull = availableSeats <= 0;
 
     return Card(
       margin: EdgeInsets.only(bottom: 16),
@@ -274,23 +302,47 @@ class CreatedRideItem extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                if (pendingRequests > 0)
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.red[100],
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.red),
-                    ),
-                    child: Text(
-                      '$pendingRequests NEW',
-                      style: TextStyle(
-                        color: Colors.red[800],
-                        fontWeight: FontWeight.bold,
-                        fontSize: 10,
+                Row(
+                  children: [
+                    if (pendingRequests > 0)
+                      Container(
+                        margin: EdgeInsets.only(right: 8),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.red[100],
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.red),
+                        ),
+                        child: Text(
+                          '$pendingRequests NEW',
+                          style: TextStyle(
+                            color: Colors.red[800],
+                            fontWeight: FontWeight.bold,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ),
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: isFull ? Colors.red[100] : Colors.green[100],
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isFull ? Colors.red : Colors.green,
+                        ),
+                      ),
+                      child: Text(
+                        isFull ? 'FULL' : '$availableSeats LEFT',
+                        style: TextStyle(
+                          color: isFull ? Colors.red[800] : Colors.green[800],
+                          fontWeight: FontWeight.bold,
+                          fontSize: 10,
+                        ),
                       ),
                     ),
-                  ),
+                  ],
+                ),
               ],
             ),
             SizedBox(height: 12),

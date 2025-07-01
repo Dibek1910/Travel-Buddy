@@ -5,11 +5,13 @@ import 'package:travel_buddy/services/ride_service.dart';
 class RideRequestManagementPage extends StatefulWidget {
   final String rideId;
   final Map<String, dynamic> rideDetails;
+  final Function(String, String, String)? onRequestStatusChanged;
 
   const RideRequestManagementPage({
     Key? key,
     required this.rideId,
     required this.rideDetails,
+    this.onRequestStatusChanged,
   }) : super(key: key);
 
   @override
@@ -22,10 +24,12 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
   bool _isLoading = true;
   String _errorMessage = '';
   Map<String, bool> _processingRequests = {};
+  late Map<String, dynamic> _currentRideDetails;
 
   @override
   void initState() {
     super.initState();
+    _currentRideDetails = Map.from(widget.rideDetails);
     _loadRequests();
   }
 
@@ -43,7 +47,7 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
     });
 
     try {
-      final requests = widget.rideDetails['requests'] ?? [];
+      final requests = _currentRideDetails['requests'] ?? [];
 
       if (!mounted) return;
 
@@ -61,8 +65,8 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
+  // Calculate current ride statistics
+  Map<String, int> _getRideStats() {
     final pendingRequests = _requests.where((req) {
       if (req is Map<String, dynamic> && req.containsKey('status')) {
         return req['status'] == 'pending';
@@ -83,6 +87,23 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
       }
       return false;
     }).length;
+
+    final capacity = _currentRideDetails['capacity'] ?? 0;
+    final availableSeats = capacity - approvedRequests;
+
+    return {
+      'pending': pendingRequests,
+      'approved': approvedRequests,
+      'rejected': rejectedRequests,
+      'capacity': capacity,
+      'available': availableSeats,
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final stats = _getRideStats();
+    final bool isFull = stats['available']! <= 0;
 
     return Scaffold(
       appBar: AppBar(
@@ -157,7 +178,7 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
                                     SizedBox(width: 12),
                                     Expanded(
                                       child: Text(
-                                        '${widget.rideDetails['from'] ?? 'Unknown'} → ${widget.rideDetails['to'] ?? 'Unknown'}',
+                                        '${_currentRideDetails['from'] ?? 'Unknown'} → ${_currentRideDetails['to'] ?? 'Unknown'}',
                                         style: TextStyle(
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold,
@@ -165,7 +186,56 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
                                         ),
                                       ),
                                     ),
+                                    Container(
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: 12, vertical: 6),
+                                      decoration: BoxDecoration(
+                                        color: isFull
+                                            ? Colors.red[100]
+                                            : Colors.green[100],
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: isFull
+                                              ? Colors.red
+                                              : Colors.green,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        isFull
+                                            ? 'FULL'
+                                            : '${stats['available']} SEATS LEFT',
+                                        style: TextStyle(
+                                          color: isFull
+                                              ? Colors.red[800]
+                                              : Colors.green[800],
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
                                   ],
+                                ),
+                                SizedBox(height: 12),
+                                Container(
+                                  padding: EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[50],
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.people,
+                                          color: Colors.blue[600], size: 20),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        'Capacity: ${stats['capacity']} | Available: ${stats['available']} | Approved: ${stats['approved']}',
+                                        style: TextStyle(
+                                          color: Colors.blue[700],
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                                 SizedBox(height: 12),
                                 Text(
@@ -182,11 +252,11 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
                                       MainAxisAlignment.spaceEvenly,
                                   children: [
                                     _buildSummaryItem('Pending',
-                                        pendingRequests, Colors.orange),
+                                        stats['pending']!, Colors.orange),
                                     _buildSummaryItem('Approved',
-                                        approvedRequests, Colors.green),
+                                        stats['approved']!, Colors.green),
                                     _buildSummaryItem('Rejected',
-                                        rejectedRequests, Colors.red),
+                                        stats['rejected']!, Colors.red),
                                   ],
                                 ),
                               ],
@@ -257,6 +327,7 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
                                 request: request,
                                 isProcessing:
                                     _processingRequests[requestId] ?? false,
+                                canApprove: stats['available']! > 0,
                                 onApprove: () =>
                                     _handleRequestAction(requestId, 'approved'),
                                 onReject: () =>
@@ -337,6 +408,11 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
           _processingRequests[requestId] = false;
         });
 
+        // Notify parent widget about the status change
+        if (widget.onRequestStatusChanged != null) {
+          widget.onRequestStatusChanged!(widget.rideId, requestId, action);
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(
@@ -385,6 +461,7 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
 class RequestItem extends StatelessWidget {
   final dynamic request;
   final bool isProcessing;
+  final bool canApprove;
   final VoidCallback onApprove;
   final VoidCallback onReject;
 
@@ -392,6 +469,7 @@ class RequestItem extends StatelessWidget {
     Key? key,
     required this.request,
     required this.isProcessing,
+    required this.canApprove,
     required this.onApprove,
     required this.onReject,
   }) : super(key: key);
@@ -531,7 +609,8 @@ class RequestItem extends StatelessWidget {
                 children: [
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: isProcessing ? null : onApprove,
+                      onPressed:
+                          (isProcessing || !canApprove) ? null : onApprove,
                       icon: isProcessing
                           ? SizedBox(
                               width: 16,
@@ -542,9 +621,14 @@ class RequestItem extends StatelessWidget {
                               ),
                             )
                           : Icon(Icons.check, size: 18),
-                      label: Text(isProcessing ? 'Processing...' : 'Accept'),
+                      label: Text(isProcessing
+                          ? 'Processing...'
+                          : !canApprove
+                              ? 'Ride Full'
+                              : 'Accept'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
+                        backgroundColor:
+                            !canApprove ? Colors.grey : Colors.green,
                         foregroundColor: Colors.white,
                         padding: EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(

@@ -77,6 +77,7 @@ class _MyRequestsPageState extends State<MyRequestsPage> {
         centerTitle: true,
         backgroundColor: Colors.orange,
         foregroundColor: Colors.white,
+        automaticallyImplyLeading: false, // Remove back button
         actions: [
           IconButton(
             icon: Icon(Icons.refresh),

@@ -64,10 +64,30 @@ class RideService {
       );
 
       final responseData = jsonDecode(response.body);
+
+      // Filter out full rides on the frontend
+      List<dynamic> rides = responseData['rides'] ?? [];
+      List<dynamic> availableRides = rides.where((ride) {
+        if (ride is Map<String, dynamic>) {
+          final int capacity = ride['capacity'] ?? 0;
+          final List requests = ride['requests'] ?? [];
+          final int approvedRequests = requests.where((req) {
+            if (req is Map<String, dynamic> && req['status'] is String) {
+              return req['status'] == 'approved';
+            }
+            return false;
+          }).length;
+
+          final int availableSeats = capacity - approvedRequests;
+          return availableSeats > 0; // Only show rides with available seats
+        }
+        return false;
+      }).toList();
+
       return {
         'success': responseData['success'],
         'message': responseData['message'],
-        'rides': responseData['rides'],
+        'rides': availableRides,
       };
     } catch (error) {
       return {
