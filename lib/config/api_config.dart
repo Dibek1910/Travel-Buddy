@@ -20,8 +20,5 @@ class ApiConfig {
   static const String userCreatedRides = '$baseUrl/api/rides/user-created';
   static const String userRideRequests = '$baseUrl/api/rides/user-requests';
   static const String addInterest = '$baseUrl/api/interest/add-interest';
-  static const String googleMapsApiKey =
-      'AIzaSyAC0nozW7irImOmfyCwDi5VPPoAlM65K10';
-  static const String googlePlacesApi =
-      'https://maps.googleapis.com/maps/api/place';
+
 }
