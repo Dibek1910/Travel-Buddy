@@ -13,6 +13,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
 
   bool _isLoading = false;
   bool _obscurePassword = true;
@@ -25,6 +26,7 @@ class _SignupScreenState extends State<SignupScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
@@ -138,6 +140,40 @@ class _SignupScreenState extends State<SignupScreen> {
                               r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
                             ).hasMatch(value)) {
                               return 'Please enter a valid email';
+                            }
+                            return null;
+                          },
+                        ),
+                        SizedBox(height: 16),
+                        TextFormField(
+                          controller: _phoneController,
+                          keyboardType: TextInputType.phone,
+                          decoration: InputDecoration(
+                            labelText: 'Phone Number',
+                            prefixIcon: Icon(Icons.phone, color: Colors.orange),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12.0),
+                              borderSide: BorderSide(
+                                color: Colors.orange,
+                                width: 2,
+                              ),
+                            ),
+                            hintText: 'Enter your 10-digit phone number',
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter your phone number';
+                            }
+
+                            String digitsOnly = value.replaceAll(
+                              RegExp(r'\D'),
+                              '',
+                            );
+                            if (digitsOnly.length != 10) {
+                              return 'Please enter a valid 10-digit phone number';
                             }
                             return null;
                           },
@@ -348,10 +384,16 @@ class _SignupScreenState extends State<SignupScreen> {
     });
 
     try {
+      String cleanPhoneNumber = _phoneController.text.replaceAll(
+        RegExp(r'\D'),
+        '',
+      );
+
       final result = await AuthService.register(
         _firstNameController.text.trim(),
         _emailController.text.trim(),
         _passwordController.text,
+        cleanPhoneNumber,
       );
 
       setState(() {

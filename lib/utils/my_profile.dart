@@ -186,6 +186,11 @@ class _MyProfileState extends State<MyProfile> {
                                 'Email',
                                 userProfile!['email'] ?? 'N/A',
                               ),
+                              _buildProfileRow(
+                                Icons.phone,
+                                'Phone Number',
+                                _getPhoneNumber(),
+                              ),
                               if (userProfile!['createdAt'] != null)
                                 _buildProfileRow(
                                   Icons.calendar_today,
@@ -261,6 +266,19 @@ class _MyProfileState extends State<MyProfile> {
     String firstName = userProfile!['firstName'] ?? '';
 
     return firstName.isNotEmpty ? firstName : 'User';
+  }
+
+  String _getPhoneNumber() {
+    if (userProfile == null) return 'N/A';
+
+    final phoneNo = userProfile!['phoneNo'];
+    if (phoneNo == null) return 'N/A';
+
+    String phoneStr = phoneNo.toString();
+    if (phoneStr.length == 10) {
+      return '+91 ${phoneStr.substring(0, 5)} ${phoneStr.substring(5)}';
+    }
+    return phoneStr;
   }
 
   String _formatDate(String dateString) {

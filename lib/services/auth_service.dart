@@ -41,6 +41,7 @@ class AuthService {
     String firstName,
     String email,
     String password,
+    String phoneNo,
   ) async {
     try {
       final response = await http.post(
@@ -50,10 +51,12 @@ class AuthService {
           'firstName': firstName,
           'email': email,
           'password': password,
+          'phoneNo': phoneNo,
         }),
       );
 
       final responseData = jsonDecode(response.body);
+
       return {
         'success': responseData['success'],
         'message': responseData['message'],

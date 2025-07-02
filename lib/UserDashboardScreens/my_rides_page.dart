@@ -68,24 +68,68 @@ class _MyRidesPageState extends State<MyRidesPage> {
   }
 
   void _updateRideData(String rideId, String requestId, String newStatus) {
-    setState(() {
-      final rideIndex = _createdRides.indexWhere(
-        (ride) => ride['_id'] == rideId,
-      );
-      if (rideIndex != -1) {
-        final ride = _createdRides[rideIndex];
-        final requests = List.from(ride['requests'] ?? []);
+    if (!mounted) return;
 
-        final requestIndex = requests.indexWhere(
-          (req) => req['_id'] == requestId,
-        );
-        if (requestIndex != -1) {
-          requests[requestIndex]['status'] = newStatus;
-
-          _createdRides[rideIndex] = {...ride, 'requests': requests};
+    try {
+      setState(() {
+        int rideIndex = -1;
+        for (int i = 0; i < _createdRides.length; i++) {
+          final ride = _createdRides[i];
+          if (ride is Map<String, dynamic>) {
+            final currentRideId = ride['_id']?.toString();
+            if (currentRideId == rideId) {
+              rideIndex = i;
+              break;
+            }
+          }
         }
-      }
-    });
+
+        if (rideIndex != -1) {
+          final ride = _createdRides[rideIndex];
+          if (ride is Map<String, dynamic>) {
+            final requests = List.from(ride['requests'] ?? []);
+
+            int requestIndex = -1;
+            for (int i = 0; i < requests.length; i++) {
+              final req = requests[i];
+              if (req is Map<String, dynamic>) {
+                final currentRequestId = req['_id']?.toString();
+                if (currentRequestId == requestId) {
+                  requestIndex = i;
+                  break;
+                }
+              }
+            }
+
+            if (requestIndex != -1) {
+              final updatedRequest = Map<String, dynamic>.from(
+                requests[requestIndex],
+              );
+              updatedRequest['status'] = newStatus;
+              requests[requestIndex] = updatedRequest;
+
+              final updatedRide = Map<String, dynamic>.from(ride);
+              updatedRide['requests'] = requests;
+              _createdRides[rideIndex] = updatedRide;
+
+              print(
+                'DEBUG: Successfully updated ride data - RideID: $rideId, RequestID: $requestId, Status: $newStatus',
+              );
+            } else {
+              print(
+                'DEBUG: Warning - Could not find request to update with ID: $requestId',
+              );
+            }
+          }
+        } else {
+          print(
+            'DEBUG: Warning - Could not find ride to update with ID: $rideId',
+          );
+        }
+      });
+    } catch (error) {
+      print('DEBUG: Error in _updateRideData: $error');
+    }
   }
 
   @override
@@ -203,29 +247,41 @@ class _MyRidesPageState extends State<MyRidesPage> {
           return CreatedRideItem(
             ride: _createdRides[index],
             onManageRequests: (ride) async {
-              final rideDetails = await RideService.getRideById(ride['_id']);
+              if (ride is Map<String, dynamic>) {
+                final rideId = ride['_id']?.toString();
+                if (rideId != null) {
+                  final rideDetails = await RideService.getRideById(rideId);
 
-              if (rideDetails['success']) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder:
-                        (context) => RideRequestManagementPage(
-                          rideId: ride['_id'],
-                          rideDetails: rideDetails['rideDetails'],
-                          onRequestStatusChanged: _updateRideData,
-                        ),
-                  ),
-                ).then((_) {
-                  _loadCreatedRides();
-                });
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Failed to load ride details'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
+                  if (rideDetails['success']) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) => RideRequestManagementPage(
+                              rideId: rideId,
+                              rideDetails: rideDetails['rideDetails'],
+                              onRequestStatusChanged: _updateRideData,
+                            ),
+                      ),
+                    ).then((_) {
+                      _loadCreatedRides();
+                    });
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Failed to load ride details'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Invalid ride data'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
               }
             },
             onRefresh: _loadCreatedRides,
@@ -250,28 +306,42 @@ class CreatedRideItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final List requests = ride['requests'] ?? [];
+    if (ride is! Map<String, dynamic>) {
+      return Card(
+        margin: EdgeInsets.only(bottom: 16),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Text('Invalid ride data', style: TextStyle(color: Colors.red)),
+        ),
+      );
+    }
+
+    final Map<String, dynamic> rideData = ride as Map<String, dynamic>;
+    final List requests = rideData['requests'] ?? [];
+
     final int pendingRequests =
         requests.where((req) {
           return req is Map<String, dynamic> && req['status'] == 'pending';
         }).length;
+
     final int approvedRequests =
         requests.where((req) {
           return req is Map<String, dynamic> && req['status'] == 'approved';
         }).length;
+
     final int totalRequests = requests.length;
 
     String formattedDate = '';
-    if (ride['date'] != null) {
+    if (rideData['date'] != null) {
       try {
-        final date = DateTime.parse(ride['date']);
+        final date = DateTime.parse(rideData['date']);
         formattedDate = DateFormat('MMM dd, yyyy - HH:mm').format(date);
       } catch (e) {
-        formattedDate = ride['date'].toString();
+        formattedDate = rideData['date'].toString();
       }
     }
 
-    final int capacity = ride['capacity'] ?? 0;
+    final int capacity = rideData['capacity'] ?? 0;
     final int availableSeats = capacity - approvedRequests;
     final bool isFull = availableSeats <= 0;
 
@@ -290,7 +360,7 @@ class CreatedRideItem extends StatelessWidget {
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    '${ride['from']} → ${ride['to']}',
+                    '${rideData['from'] ?? 'Unknown'} → ${rideData['to'] ?? 'Unknown'}',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                     overflow: TextOverflow.ellipsis,
                   ),

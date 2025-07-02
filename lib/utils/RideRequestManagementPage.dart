@@ -102,6 +102,21 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
     };
   }
 
+  String _getRequestId(dynamic request, int index) {
+    if (request is Map<String, dynamic>) {
+      final id = request['_id'];
+      if (id != null) {
+        return id.toString();
+      }
+    }
+    return 'unknown_$index';
+  }
+
+  bool _compareRequestIds(dynamic requestId1, dynamic requestId2) {
+    if (requestId1 == null || requestId2 == null) return false;
+    return requestId1.toString() == requestId2.toString();
+  }
+
   @override
   Widget build(BuildContext context) {
     final stats = _getRideStats();
@@ -239,11 +254,16 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
                                       size: 20,
                                     ),
                                     SizedBox(width: 8),
-                                    Text(
-                                      'Capacity: ${stats['capacity']} | Available: ${stats['available']} | Approved: ${stats['approved']}',
-                                      style: TextStyle(
-                                        color: Colors.blue[700],
-                                        fontWeight: FontWeight.w500,
+                                    Expanded(
+                                      child: Text(
+                                        'Capacity: ${stats['capacity']} | Available: ${stats['available']} | Approved: ${stats['approved']}',
+                                        style: TextStyle(
+                                          color: Colors.blue[700],
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
+                                        softWrap: false,
                                       ),
                                     ),
                                   ],
@@ -337,14 +357,11 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
                           itemCount: _requests.length,
                           itemBuilder: (context, index) {
                             final request = _requests[index];
-
-                            final requestId =
-                                request is Map<String, dynamic>
-                                    ? request['_id'] ?? 'unknown_$index'
-                                    : 'unknown_$index';
+                            final requestId = _getRequestId(request, index);
 
                             return RequestItem(
                               request: request,
+                              requestId: requestId,
                               isProcessing:
                                   _processingRequests[requestId] ?? false,
                               canApprove: stats['available']! > 0,
@@ -402,6 +419,11 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
   Future<void> _handleRequestAction(String requestId, String action) async {
     if (!mounted) return;
 
+    print(
+      'DEBUG: Handling request action - RequestID: $requestId, Action: $action',
+    );
+    print('DEBUG: Current requests count: ${_requests.length}');
+
     setState(() {
       _processingRequests[requestId] = true;
     });
@@ -417,17 +439,28 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
 
       if (result['success']) {
         setState(() {
-          final requestIndex = _requests.indexWhere((req) {
-            if (req is Map<String, dynamic>) {
-              return req['_id'] == requestId;
+          bool requestUpdated = false;
+          for (int i = 0; i < _requests.length; i++) {
+            final request = _requests[i];
+            if (request is Map<String, dynamic>) {
+              final currentRequestId = _getRequestId(request, i);
+              if (_compareRequestIds(currentRequestId, requestId)) {
+                final updatedRequest = Map<String, dynamic>.from(request);
+                updatedRequest['status'] = action;
+                _requests[i] = updatedRequest;
+                requestUpdated = true;
+                print('DEBUG: Successfully updated request at index $i');
+                break;
+              }
             }
-            return false;
-          });
-
-          if (requestIndex != -1 &&
-              _requests[requestIndex] is Map<String, dynamic>) {
-            _requests[requestIndex]['status'] = action;
           }
+
+          if (!requestUpdated) {
+            print(
+              'DEBUG: Warning - Could not find request to update with ID: $requestId',
+            );
+          }
+
           _processingRequests[requestId] = false;
         });
 
@@ -466,6 +499,9 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
     } catch (error) {
       if (!mounted) return;
 
+      print('DEBUG: Error in _handleRequestAction: $error');
+      print('DEBUG: Error type: ${error.runtimeType}');
+
       setState(() {
         _processingRequests[requestId] = false;
       });
@@ -483,6 +519,7 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
 
 class RequestItem extends StatelessWidget {
   final dynamic request;
+  final String requestId;
   final bool isProcessing;
   final bool canApprove;
   final VoidCallback onApprove;
@@ -491,6 +528,7 @@ class RequestItem extends StatelessWidget {
   const RequestItem({
     Key? key,
     required this.request,
+    required this.requestId,
     required this.isProcessing,
     required this.canApprove,
     required this.onApprove,

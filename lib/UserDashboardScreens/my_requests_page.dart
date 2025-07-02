@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:travel_buddy/services/ride_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MyRequestsPage extends StatefulWidget {
   final String authToken;
@@ -66,6 +67,77 @@ class _MyRequestsPageState extends State<MyRequestsPage> {
         _errorMessage = 'Error loading requests: $error';
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _openWhatsApp(String phoneNumber) async {
+    try {
+      String cleanPhoneNumber = phoneNumber.replaceAll(RegExp(r'\D'), '');
+
+      if (cleanPhoneNumber.length == 10) {
+        cleanPhoneNumber = '91$cleanPhoneNumber';
+      }
+
+      final List<String> whatsappUrls = [
+        'whatsapp://send?phone=$cleanPhoneNumber',
+        'https://wa.me/$cleanPhoneNumber',
+        'https://api.whatsapp.com/send?phone=$cleanPhoneNumber',
+      ];
+
+      bool launched = false;
+
+      for (String url in whatsappUrls) {
+        try {
+          final Uri uri = Uri.parse(url);
+          if (await canLaunchUrl(uri)) {
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
+            launched = true;
+            break;
+          }
+        } catch (e) {
+          continue;
+        }
+      }
+
+      if (!launched) {
+        final Uri phoneUri = Uri.parse('tel:+$cleanPhoneNumber');
+        if (await canLaunchUrl(phoneUri)) {
+          await launchUrl(phoneUri);
+        } else {
+          throw Exception('No communication app available');
+        }
+      }
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Could not open WhatsApp. Trying phone dialer...'),
+          backgroundColor: Colors.orange,
+          action: SnackBarAction(
+            label: 'Call',
+            textColor: Colors.white,
+            onPressed: () async {
+              try {
+                String cleanPhoneNumber = phoneNumber.replaceAll(
+                  RegExp(r'\D'),
+                  '',
+                );
+                if (cleanPhoneNumber.length == 10) {
+                  cleanPhoneNumber = '91$cleanPhoneNumber';
+                }
+                final Uri phoneUri = Uri.parse('tel:+$cleanPhoneNumber');
+                await launchUrl(phoneUri);
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Error: $e'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+          ),
+        ),
+      );
     }
   }
 
@@ -176,6 +248,7 @@ class _MyRequestsPageState extends State<MyRequestsPage> {
                       isCancelling:
                           _cancellingRequests[_requests[index]['_id']] ?? false,
                       onCancel: () => _cancelRequest(_requests[index]['_id']),
+                      onOpenWhatsApp: _openWhatsApp,
                     );
                   },
                 ),
@@ -253,12 +326,14 @@ class RequestItem extends StatelessWidget {
   final dynamic request;
   final bool isCancelling;
   final VoidCallback onCancel;
+  final Function(String) onOpenWhatsApp;
 
   const RequestItem({
     Key? key,
     required this.request,
     required this.isCancelling,
     required this.onCancel,
+    required this.onOpenWhatsApp,
   }) : super(key: key);
 
   @override
@@ -295,6 +370,13 @@ class RequestItem extends StatelessWidget {
         statusColor = Colors.orange;
         statusIcon = Icons.pending;
         statusText = 'Pending';
+    }
+
+    String? hostPhoneNumber;
+    if (ride != null &&
+        ride['host'] != null &&
+        ride['host']['phoneNo'] != null) {
+      hostPhoneNumber = ride['host']['phoneNo'].toString();
     }
 
     return Card(
@@ -413,8 +495,26 @@ class RequestItem extends StatelessWidget {
                 ),
               ),
             ],
-            if (status == 'pending') ...[
-              SizedBox(height: 12),
+            SizedBox(height: 12),
+
+            if (status == 'approved' && hostPhoneNumber != null) ...[
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => onOpenWhatsApp(hostPhoneNumber!),
+                  icon: Icon(Icons.chat, size: 18),
+                  label: Text('Contact Host on WhatsApp'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+            ] else if (status == 'pending') ...[
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
