@@ -419,11 +419,6 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
   Future<void> _handleRequestAction(String requestId, String action) async {
     if (!mounted) return;
 
-    print(
-      'DEBUG: Handling request action - RequestID: $requestId, Action: $action',
-    );
-    print('DEBUG: Current requests count: ${_requests.length}');
-
     setState(() {
       _processingRequests[requestId] = true;
     });
@@ -439,7 +434,6 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
 
       if (result['success']) {
         setState(() {
-          bool requestUpdated = false;
           for (int i = 0; i < _requests.length; i++) {
             final request = _requests[i];
             if (request is Map<String, dynamic>) {
@@ -448,17 +442,10 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
                 final updatedRequest = Map<String, dynamic>.from(request);
                 updatedRequest['status'] = action;
                 _requests[i] = updatedRequest;
-                requestUpdated = true;
-                print('DEBUG: Successfully updated request at index $i');
+
                 break;
               }
             }
-          }
-
-          if (!requestUpdated) {
-            print(
-              'DEBUG: Warning - Could not find request to update with ID: $requestId',
-            );
           }
 
           _processingRequests[requestId] = false;

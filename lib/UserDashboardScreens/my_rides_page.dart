@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:travel_buddy/services/ride_service.dart';
 import 'package:travel_buddy/utils/RideRequestManagementPage.dart';
+import 'package:travel_buddy/utils/UpdateRideDetailsPage.dart';
 
 class MyRidesPage extends StatefulWidget {
   final String authToken;
@@ -129,6 +130,78 @@ class _MyRidesPageState extends State<MyRidesPage> {
       });
     } catch (error) {
       print('DEBUG: Error in _updateRideData: $error');
+    }
+  }
+
+  Future<void> _cancelRide(String rideId) async {
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Cancel Ride'),
+          content: Text(
+            'Are you sure you want to cancel this ride? This action cannot be undone and all passengers will be notified.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text('Keep Ride'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              child: Text('Cancel Ride'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      try {
+        final result = await RideService.cancelRide(rideId);
+
+        if (result['success']) {
+          setState(() {
+            _createdRides.removeWhere((ride) {
+              if (ride is Map<String, dynamic>) {
+                return ride['_id'] == rideId;
+              }
+              return false;
+            });
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.white),
+                  SizedBox(width: 10),
+                  Text('Ride cancelled successfully'),
+                ],
+              ),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['message'] ?? 'Failed to cancel ride'),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      } catch (error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error cancelling ride: $error'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 
@@ -284,6 +357,28 @@ class _MyRidesPageState extends State<MyRidesPage> {
                 }
               }
             },
+            onEditRide: (ride) {
+              if (ride is Map<String, dynamic>) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder:
+                        (context) => UpdateRideDetailsPage(
+                          rideDetails: ride,
+                          onRideUpdated: _loadCreatedRides,
+                        ),
+                  ),
+                );
+              }
+            },
+            onCancelRide: (ride) {
+              if (ride is Map<String, dynamic>) {
+                final rideId = ride['_id']?.toString();
+                if (rideId != null) {
+                  _cancelRide(rideId);
+                }
+              }
+            },
             onRefresh: _loadCreatedRides,
           );
         },
@@ -295,12 +390,16 @@ class _MyRidesPageState extends State<MyRidesPage> {
 class CreatedRideItem extends StatelessWidget {
   final dynamic ride;
   final Function(dynamic) onManageRequests;
+  final Function(dynamic) onEditRide;
+  final Function(dynamic) onCancelRide;
   final VoidCallback onRefresh;
 
   const CreatedRideItem({
     Key? key,
     required this.ride,
     required this.onManageRequests,
+    required this.onEditRide,
+    required this.onCancelRide,
     required this.onRefresh,
   }) : super(key: key);
 
@@ -324,11 +423,6 @@ class CreatedRideItem extends StatelessWidget {
           return req is Map<String, dynamic> && req['status'] == 'pending';
         }).length;
 
-    final int approvedRequests =
-        requests.where((req) {
-          return req is Map<String, dynamic> && req['status'] == 'approved';
-        }).length;
-
     final int totalRequests = requests.length;
 
     String formattedDate = '';
@@ -342,8 +436,6 @@ class CreatedRideItem extends StatelessWidget {
     }
 
     final int capacity = rideData['capacity'] ?? 0;
-    final int availableSeats = capacity - approvedRequests;
-    final bool isFull = availableSeats <= 0;
 
     return Card(
       margin: EdgeInsets.only(bottom: 16),
@@ -365,49 +457,23 @@ class CreatedRideItem extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                Row(
-                  children: [
-                    if (pendingRequests > 0)
-                      Container(
-                        margin: EdgeInsets.only(right: 8),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.red[100],
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.red),
-                        ),
-                        child: Text(
-                          '$pendingRequests NEW',
-                          style: TextStyle(
-                            color: Colors.red[800],
-                            fontWeight: FontWeight.bold,
-                            fontSize: 10,
-                          ),
-                        ),
-                      ),
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: isFull ? Colors.red[100] : Colors.green[100],
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: isFull ? Colors.red : Colors.green,
-                        ),
-                      ),
-                      child: Text(
-                        isFull ? 'FULL' : '$availableSeats LEFT',
-                        style: TextStyle(
-                          color: isFull ? Colors.red[800] : Colors.green[800],
-                          fontWeight: FontWeight.bold,
-                          fontSize: 10,
-                        ),
+                if (pendingRequests > 0)
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.red[100],
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.red),
+                    ),
+                    child: Text(
+                      '$pendingRequests NEW',
+                      style: TextStyle(
+                        color: Colors.red[800],
+                        fontWeight: FontWeight.bold,
+                        fontSize: 10,
                       ),
                     ),
-                  ],
-                ),
+                  ),
               ],
             ),
             SizedBox(height: 12),
@@ -440,7 +506,7 @@ class CreatedRideItem extends StatelessWidget {
                       Icon(Icons.people, color: Colors.green[600], size: 20),
                       SizedBox(width: 8),
                       Text(
-                        'Capacity: $capacity | Available: $availableSeats',
+                        'Total Capacity: $capacity seats',
                         style: TextStyle(
                           color: Colors.green[700],
                           fontWeight: FontWeight.w500,
@@ -470,7 +536,7 @@ class CreatedRideItem extends StatelessWidget {
                     SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Requests: $totalRequests total, $pendingRequests pending, $approvedRequests approved',
+                        'Total Requests: $totalRequests${pendingRequests > 0 ? ' ($pendingRequests pending)' : ''}',
                         style: TextStyle(
                           color: Colors.blue[700],
                           fontWeight: FontWeight.w500,
@@ -483,26 +549,61 @@ class CreatedRideItem extends StatelessWidget {
               ),
             ],
             SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () => onManageRequests(ride),
-                icon: Icon(Icons.settings),
-                label: Text(
-                  totalRequests > 0
-                      ? 'Manage Requests ($totalRequests)'
-                      : 'Manage Requests',
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      pendingRequests > 0 ? Colors.red : Colors.orange,
-                  foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () => onManageRequests(ride),
+                    icon: Icon(Icons.settings, size: 18),
+                    label: Text(
+                      totalRequests > 0 ? 'Manage ($totalRequests)' : 'Manage',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                          pendingRequests > 0 ? Colors.red : Colors.orange,
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(vertical: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
                   ),
                 ),
-              ),
+                SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () => onEditRide(ride),
+                    icon: Icon(Icons.edit, size: 18),
+                    label: Text('Edit', style: TextStyle(fontSize: 12)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(vertical: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () => onCancelRide(ride),
+                    icon: Icon(Icons.cancel, size: 18),
+                    label: Text('Cancel', style: TextStyle(fontSize: 12)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(vertical: 10),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

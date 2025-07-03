@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:travel_buddy/services/auth_service.dart';
-import 'package:travel_buddy/Screens/login_screen.dart';
+import 'package:travel_buddy/Screens/home_screen.dart';
 
 class LogoutDialog extends StatefulWidget {
+  const LogoutDialog({Key? key}) : super(key: key);
+
   @override
   _LogoutDialogState createState() => _LogoutDialogState();
 }
@@ -13,18 +15,18 @@ class _LogoutDialogState extends State<LogoutDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text('Logout'),
+      title: const Text('Logout'),
       content:
           _isLoggingOut
-              ? Column(
+              ? const Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  CircularProgressIndicator(),
+                  CircularProgressIndicator(color: Colors.orange),
                   SizedBox(height: 16),
                   Text('Logging out...'),
                 ],
               )
-              : Text('Are you sure you want to logout?'),
+              : const Text('Are you sure you want to logout?'),
       actions:
           _isLoggingOut
               ? []
@@ -35,7 +37,7 @@ class _LogoutDialogState extends State<LogoutDialog> {
                       Navigator.of(context).pop();
                     }
                   },
-                  child: Text('Cancel'),
+                  child: const Text('Cancel'),
                 ),
                 ElevatedButton(
                   onPressed: () => _performLogout(context),
@@ -43,7 +45,7 @@ class _LogoutDialogState extends State<LogoutDialog> {
                     backgroundColor: Colors.red,
                     foregroundColor: Colors.white,
                   ),
-                  child: Text('Logout'),
+                  child: const Text('Logout'),
                 ),
               ],
     );
@@ -57,15 +59,13 @@ class _LogoutDialogState extends State<LogoutDialog> {
     });
 
     try {
-      final navigator = Navigator.of(dialogContext);
-
       await AuthService.logout();
 
       if (mounted) {
-        navigator.pop();
+        Navigator.of(dialogContext).pop();
 
-        navigator.pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => LoginScreen()),
+        Navigator.of(dialogContext).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
           (route) => false,
         );
       }
@@ -77,7 +77,7 @@ class _LogoutDialogState extends State<LogoutDialog> {
 
         ScaffoldMessenger.of(dialogContext).showSnackBar(
           SnackBar(
-            content: Text('Logout failed: $error'),
+            content: Text('Logout failed: ${error.toString()}'),
             backgroundColor: Colors.red,
           ),
         );
@@ -91,7 +91,7 @@ class LogoutDialogHelper {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (BuildContext dialogContext) => LogoutDialog(),
+      builder: (BuildContext dialogContext) => const LogoutDialog(),
     );
   }
 
@@ -101,11 +101,11 @@ class LogoutDialogHelper {
         context: context,
         barrierDismissible: false,
         builder:
-            (BuildContext dialogContext) => AlertDialog(
+            (BuildContext dialogContext) => const AlertDialog(
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  CircularProgressIndicator(),
+                  CircularProgressIndicator(color: Colors.orange),
                   SizedBox(height: 16),
                   Text('Logging out...'),
                 ],
@@ -117,7 +117,7 @@ class LogoutDialogHelper {
 
       if (context.mounted) {
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => LoginScreen()),
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
           (route) => false,
         );
       }
@@ -127,7 +127,7 @@ class LogoutDialogHelper {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Logout failed: $error'),
+            content: Text('Logout failed: ${error.toString()}'),
             backgroundColor: Colors.red,
           ),
         );

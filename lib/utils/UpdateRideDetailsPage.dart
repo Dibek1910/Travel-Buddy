@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:travel_buddy/services/ride_service.dart';
+import 'package:travel_buddy/services/auth_service.dart';
 import 'package:travel_buddy/widgets/location_autocomplete_field.dart';
 
 class UpdateRideDetailsPage extends StatefulWidget {
@@ -29,6 +30,8 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
   final TextEditingController _descriptionController = TextEditingController();
 
   bool _isLoading = false;
+  bool _isLoadingUserData = true;
+  bool _hasInitialized = false;
   String _message = '';
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
@@ -36,28 +39,90 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
   @override
   void initState() {
     super.initState();
-    _initializeFields();
+    _initializeBasicFields();
+    _loadUserPhoneNumber();
   }
 
-  void _initializeFields() {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_hasInitialized) {
+      _initializeDateTimeFields();
+      _hasInitialized = true;
+    }
+  }
+
+  void _initializeBasicFields() {
     final ride = widget.rideDetails;
 
     _fromController.text = ride['from'] ?? '';
     _toController.text = ride['to'] ?? '';
     _capacityController.text = ride['capacity']?.toString() ?? '';
-    _phoneController.text = ride['phoneNo']?.toString() ?? '';
     _priceController.text = ride['price']?.toString() ?? '';
     _descriptionController.text = ride['description'] ?? '';
 
+    // Parse date and time but don't format yet
     if (ride['date'] != null) {
       try {
         final dateTime = DateTime.parse(ride['date']);
         _selectedDate = dateTime;
         _selectedTime = TimeOfDay.fromDateTime(dateTime);
         _dateController.text = DateFormat('yyyy-MM-dd').format(dateTime);
-        _timeController.text = _selectedTime!.format(context);
+        // Don't format time here - will be done in didChangeDependencies
       } catch (e) {
         print('Error parsing date: $e');
+      }
+    }
+  }
+
+  void _initializeDateTimeFields() {
+    // Now we can safely use context to format the time
+    if (_selectedTime != null) {
+      _timeController.text = _selectedTime!.format(context);
+    }
+  }
+
+  Future<void> _loadUserPhoneNumber() async {
+    try {
+      // First try to get phone number from ride details
+      final ride = widget.rideDetails;
+      if (ride['phoneNo'] != null) {
+        if (mounted) {
+          setState(() {
+            _phoneController.text = ride['phoneNo'].toString();
+            _isLoadingUserData = false;
+          });
+        }
+        return;
+      }
+
+      // If not in ride details, get from user profile
+      final phoneNumber = await AuthService.getUserPhoneNumber();
+      if (mounted && phoneNumber != null && phoneNumber.isNotEmpty) {
+        setState(() {
+          _phoneController.text = phoneNumber;
+          _isLoadingUserData = false;
+        });
+      } else {
+        final userData = await AuthService.getUserData();
+        if (mounted && userData != null && userData['phoneNo'] != null) {
+          setState(() {
+            _phoneController.text = userData['phoneNo'].toString();
+            _isLoadingUserData = false;
+          });
+        } else {
+          if (mounted) {
+            setState(() {
+              _isLoadingUserData = false;
+            });
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingUserData = false;
+        });
       }
     }
   }
@@ -77,6 +142,26 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoadingUserData) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text('Edit Ride'),
+          centerTitle: true,
+          elevation: 0,
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(color: Colors.orange),
+              SizedBox(height: 16),
+              Text('Loading ride information...'),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(title: Text('Edit Ride'), centerTitle: true, elevation: 0),
       body: SingleChildScrollView(
@@ -328,6 +413,17 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
                                     Icons.phone,
                                     color: Colors.orange,
                                   ),
+                                  suffixIcon:
+                                      _phoneController.text.isNotEmpty
+                                          ? const Icon(
+                                            Icons.verified,
+                                            color: Colors.green,
+                                          )
+                                          : null,
+                                  helperText:
+                                      _phoneController.text.isNotEmpty
+                                          ? 'Auto-filled from profile'
+                                          : null,
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(12.0),
                                   ),

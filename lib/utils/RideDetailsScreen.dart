@@ -584,7 +584,7 @@ class _RideDetailsScreenState extends State<RideDetailsScreen> {
                 Expanded(child: Text(result['message'])),
               ],
             ),
-            backgroundColor: Colors.red,
+            backgroundColor: Colors.green,
             behavior: SnackBarBehavior.floating,
           ),
         );

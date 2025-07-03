@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:travel_buddy/services/auth_service.dart';
 import 'package:travel_buddy/services/ride_service.dart';
 import 'package:travel_buddy/widgets/location_autocomplete_field.dart';
 
@@ -24,8 +25,15 @@ class _CreateRidePageState extends State<CreateRidePage> {
   final TextEditingController _descriptionController = TextEditingController();
 
   bool _isLoading = false;
+  bool _isLoadingUserData = true;
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserPhoneNumber();
+  }
 
   @override
   void dispose() {
@@ -40,8 +48,53 @@ class _CreateRidePageState extends State<CreateRidePage> {
     super.dispose();
   }
 
+  Future<void> _loadUserPhoneNumber() async {
+    try {
+      final phoneNumber = await AuthService.getUserPhoneNumber();
+      if (mounted && phoneNumber != null && phoneNumber.isNotEmpty) {
+        setState(() {
+          _phoneController.text = phoneNumber;
+          _isLoadingUserData = false;
+        });
+      } else {
+        final userData = await AuthService.getUserData();
+        if (mounted && userData != null && userData['phoneNo'] != null) {
+          setState(() {
+            _phoneController.text = userData['phoneNo'];
+            _isLoadingUserData = false;
+          });
+        } else {
+          setState(() {
+            _isLoadingUserData = false;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingUserData = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_isLoadingUserData) {
+      return const Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(color: Colors.orange),
+              SizedBox(height: 16),
+              Text('Loading user information...'),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -318,12 +371,24 @@ class _CreateRidePageState extends State<CreateRidePage> {
                           TextFormField(
                             controller: _phoneController,
                             keyboardType: TextInputType.phone,
+                            readOnly: _phoneController.text.isNotEmpty,
                             decoration: InputDecoration(
                               labelText: 'Contact Number',
                               prefixIcon: Icon(
                                 Icons.phone,
                                 color: Colors.orange,
                               ),
+                              suffixIcon:
+                                  _phoneController.text.isNotEmpty
+                                      ? const Icon(
+                                        Icons.verified,
+                                        color: Colors.green,
+                                      )
+                                      : null,
+                              helperText:
+                                  _phoneController.text.isNotEmpty
+                                      ? 'Using your registered phone number'
+                                      : null,
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12.0),
                               ),
@@ -543,10 +608,11 @@ class _CreateRidePageState extends State<CreateRidePage> {
         _timeController.clear();
         _capacityController.clear();
         _priceController.clear();
-        _phoneController.clear();
         _descriptionController.clear();
         _selectedDate = null;
         _selectedTime = null;
+
+        _loadUserPhoneNumber();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -576,7 +642,7 @@ class _CreateRidePageState extends State<CreateRidePage> {
               Flexible(child: Text('Error creating ride: $error')),
             ],
           ),
-          backgroundColor: Colors.red,
+          backgroundColor: Colors.green,
           behavior: SnackBarBehavior.floating,
         ),
       );
