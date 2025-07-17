@@ -61,14 +61,12 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
     _priceController.text = ride['price']?.toString() ?? '';
     _descriptionController.text = ride['description'] ?? '';
 
-    // Parse date and time but don't format yet
     if (ride['date'] != null) {
       try {
         final dateTime = DateTime.parse(ride['date']);
         _selectedDate = dateTime;
         _selectedTime = TimeOfDay.fromDateTime(dateTime);
         _dateController.text = DateFormat('yyyy-MM-dd').format(dateTime);
-        // Don't format time here - will be done in didChangeDependencies
       } catch (e) {
         print('Error parsing date: $e');
       }
@@ -76,7 +74,6 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
   }
 
   void _initializeDateTimeFields() {
-    // Now we can safely use context to format the time
     if (_selectedTime != null) {
       _timeController.text = _selectedTime!.format(context);
     }
@@ -84,7 +81,6 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
 
   Future<void> _loadUserPhoneNumber() async {
     try {
-      // First try to get phone number from ride details
       final ride = widget.rideDetails;
       if (ride['phoneNo'] != null) {
         if (mounted) {
@@ -96,7 +92,6 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
         return;
       }
 
-      // If not in ride details, get from user profile
       final phoneNumber = await AuthService.getUserPhoneNumber();
       if (mounted && phoneNumber != null && phoneNumber.isNotEmpty) {
         setState(() {

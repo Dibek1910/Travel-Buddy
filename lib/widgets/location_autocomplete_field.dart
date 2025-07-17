@@ -6,6 +6,10 @@ class LocationAutocompleteField extends StatefulWidget {
   final String? initialValue;
   final Function(String) onLocationSelected;
   final TextEditingController? controller;
+  final bool restrictToCountry;
+  final String countryCode;
+  final List<String>? types;
+  final String? hintText;
 
   const LocationAutocompleteField({
     Key? key,
@@ -13,6 +17,10 @@ class LocationAutocompleteField extends StatefulWidget {
     this.initialValue,
     required this.onLocationSelected,
     this.controller,
+    this.restrictToCountry = false,
+    this.countryCode = 'in',
+    this.types,
+    this.hintText,
   }) : super(key: key);
 
   @override
@@ -54,7 +62,7 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
   }
 
   void _onTextChanged(String value) async {
-    if (value.length < 3) {
+    if (value.length < 2) {
       setState(() {
         _showSuggestions = false;
         _predictions = [];
@@ -68,16 +76,26 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
     });
 
     try {
-      final predictions = await GoogleMapsService.getPlacePredictions(value);
-      setState(() {
-        _predictions = predictions;
-        _isLoading = false;
-      });
+      final predictions = await GoogleMapsService.getPlacePredictions(
+        value,
+        restrictToCountry: widget.restrictToCountry,
+        countryCode: widget.countryCode,
+        types: widget.types,
+      );
+
+      if (mounted) {
+        setState(() {
+          _predictions = predictions;
+          _isLoading = false;
+        });
+      }
     } catch (error) {
-      setState(() {
-        _isLoading = false;
-        _predictions = [];
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _predictions = [];
+        });
+      }
     }
   }
 
@@ -91,6 +109,7 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
           focusNode: _focusNode,
           decoration: InputDecoration(
             labelText: widget.label,
+            hintText: widget.hintText ?? 'Search for a location',
             prefixIcon: const Icon(Icons.location_on, color: Colors.orange),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.0),
@@ -99,20 +118,35 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
               borderRadius: BorderRadius.circular(12.0),
               borderSide: BorderSide(color: Colors.orange, width: 2),
             ),
-            suffixIcon:
-                _controller.text.isNotEmpty
-                    ? IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: () {
-                        _controller.clear();
-                        widget.onLocationSelected('');
-                        setState(() {
-                          _showSuggestions = false;
-                          _predictions = [];
-                        });
-                      },
-                    )
-                    : null,
+            suffixIcon: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (_isLoading)
+                  const Padding(
+                    padding: EdgeInsets.all(12.0),
+                    child: SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.orange,
+                      ),
+                    ),
+                  ),
+                if (_controller.text.isNotEmpty && !_isLoading)
+                  IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: () {
+                      _controller.clear();
+                      widget.onLocationSelected('');
+                      setState(() {
+                        _showSuggestions = false;
+                        _predictions = [];
+                      });
+                    },
+                  ),
+              ],
+            ),
           ),
           onChanged: _onTextChanged,
           onTap: () {
@@ -144,9 +178,22 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
                     ? Container(
                       height: 60,
                       child: Center(
-                        child: CircularProgressIndicator(
-                          color: Colors.orange,
-                          strokeWidth: 2,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CircularProgressIndicator(
+                              color: Colors.orange,
+                              strokeWidth: 2,
+                            ),
+                            SizedBox(width: 12),
+                            Text(
+                              'Searching...',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     )
@@ -159,7 +206,7 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
                         return ListTile(
                           dense: true,
                           leading: Icon(
-                            Icons.location_on,
+                            prediction.icon,
                             color: Colors.orange,
                             size: 20,
                           ),
@@ -169,6 +216,8 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
                               fontWeight: FontWeight.w500,
                               fontSize: 14,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                           subtitle:
                               prediction.secondaryText.isNotEmpty
@@ -178,6 +227,8 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
                                       fontSize: 12,
                                       color: Colors.grey[600],
                                     ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                   )
                                   : null,
                           onTap: () {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:travel_buddy/services/ride_service.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'dart:io' show Platform;
 
 class MyRequestsPage extends StatefulWidget {
   final String authToken;
@@ -78,67 +79,221 @@ class _MyRequestsPageState extends State<MyRequestsPage> {
         cleanPhoneNumber = '91$cleanPhoneNumber';
       }
 
-      final List<String> whatsappUrls = [
-        'whatsapp://send?phone=$cleanPhoneNumber',
-        'https://wa.me/$cleanPhoneNumber',
-        'https://api.whatsapp.com/send?phone=$cleanPhoneNumber',
-      ];
-
-      bool launched = false;
-
-      for (String url in whatsappUrls) {
-        try {
-          final Uri uri = Uri.parse(url);
-          if (await canLaunchUrl(uri)) {
-            await launchUrl(uri, mode: LaunchMode.externalApplication);
-            launched = true;
-            break;
-          }
-        } catch (e) {
-          continue;
-        }
-      }
-
-      if (!launched) {
-        final Uri phoneUri = Uri.parse('tel:+$cleanPhoneNumber');
-        if (await canLaunchUrl(phoneUri)) {
-          await launchUrl(phoneUri);
-        } else {
-          throw Exception('No communication app available');
-        }
+      if (Platform.isAndroid) {
+        await _openWhatsAppAndroid(cleanPhoneNumber);
+      } else {
+        await _openWhatsAppIOS(cleanPhoneNumber);
       }
     } catch (error) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Could not open WhatsApp. Trying phone dialer...'),
-          backgroundColor: Colors.orange,
-          action: SnackBarAction(
-            label: 'Call',
-            textColor: Colors.white,
-            onPressed: () async {
-              try {
-                String cleanPhoneNumber = phoneNumber.replaceAll(
-                  RegExp(r'\D'),
-                  '',
-                );
-                if (cleanPhoneNumber.length == 10) {
-                  cleanPhoneNumber = '91$cleanPhoneNumber';
-                }
-                final Uri phoneUri = Uri.parse('tel:+$cleanPhoneNumber');
-                await launchUrl(phoneUri);
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Error: $e'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              }
-            },
-          ),
-        ),
-      );
+      _showContactOptions(phoneNumber);
     }
+  }
+
+  Future<void> _openWhatsAppAndroid(String phoneNumber) async {
+    final List<String> androidApproaches = [
+      'whatsapp://send?phone=$phoneNumber',
+      'https://wa.me/$phoneNumber',
+      'https://api.whatsapp.com/send?phone=$phoneNumber',
+    ];
+
+    bool launched = false;
+
+    for (String url in androidApproaches) {
+      try {
+        final Uri uri = Uri.parse(url);
+
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+          launched = true;
+          break;
+        }
+      } catch (e) {
+        continue;
+      }
+    }
+
+    if (!launched) {
+      _showContactOptions(phoneNumber);
+    }
+  }
+
+  Future<void> _openWhatsAppIOS(String phoneNumber) async {
+    final List<String> iosUrls = [
+      'whatsapp://send?phone=$phoneNumber',
+      'https://wa.me/$phoneNumber',
+      'https://api.whatsapp.com/send?phone=$phoneNumber',
+    ];
+
+    bool launched = false;
+
+    for (String url in iosUrls) {
+      try {
+        final Uri uri = Uri.parse(url);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+          launched = true;
+          break;
+        }
+      } catch (e) {
+        continue;
+      }
+    }
+
+    if (!launched) {
+      _showContactOptions(phoneNumber);
+    }
+  }
+
+  void _showContactOptions(String phoneNumber) {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return Container(
+          padding: EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              SizedBox(height: 20),
+              Text(
+                'Contact Host',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[800],
+                ),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Choose how you want to contact the host',
+                style: TextStyle(color: Colors.grey[600], fontSize: 14),
+              ),
+              SizedBox(height: 24),
+
+              Container(
+                margin: EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey[300]!),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ListTile(
+                  leading: Container(
+                    padding: EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.green[50],
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(Icons.phone, color: Colors.green[600]),
+                  ),
+                  title: Text(
+                    'Call',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  subtitle: Text('+$phoneNumber'),
+                  trailing: Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    final Uri phoneUri = Uri.parse('tel:+$phoneNumber');
+                    if (await canLaunchUrl(phoneUri)) {
+                      await launchUrl(phoneUri);
+                    }
+                  },
+                ),
+              ),
+
+              Container(
+                margin: EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey[300]!),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ListTile(
+                  leading: Container(
+                    padding: EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.blue[50],
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(Icons.message, color: Colors.blue[600]),
+                  ),
+                  title: Text(
+                    'SMS',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  subtitle: Text('Send a text message'),
+                  trailing: Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    final Uri smsUri = Uri.parse('sms:+$phoneNumber');
+                    if (await canLaunchUrl(smsUri)) {
+                      await launchUrl(smsUri);
+                    }
+                  },
+                ),
+              ),
+
+              Container(
+                margin: EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey[300]!),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ListTile(
+                  leading: Container(
+                    padding: EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.green[50],
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(Icons.chat, color: Colors.green[600]),
+                  ),
+                  title: Text(
+                    'WhatsApp Web',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  subtitle: Text('Open in browser'),
+                  trailing: Icon(Icons.arrow_forward_ios, size: 16),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    final Uri webUri = Uri.parse('https://wa.me/$phoneNumber');
+                    await launchUrl(
+                      webUri,
+                      mode: LaunchMode.externalApplication,
+                    );
+                  },
+                ),
+              ),
+
+              SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                  ),
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                  ),
+                ),
+              ),
+              SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override

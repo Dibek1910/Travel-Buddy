@@ -26,6 +26,22 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  void _normalizeEmailInput(String value) {
+    final normalizedValue = value.toLowerCase().trim();
+    if (value != normalizedValue) {
+      final cursorPosition = _emailController.selection.baseOffset;
+      _emailController.value = _emailController.value.copyWith(
+        text: normalizedValue,
+        selection: TextSelection.collapsed(
+          offset:
+              cursorPosition <= normalizedValue.length
+                  ? cursorPosition
+                  : normalizedValue.length,
+        ),
+      );
+    }
+  }
+
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) {
       return 'Email is required';
@@ -114,6 +130,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                 color: Colors.orange,
                               ),
                             ),
+                            onChanged: (value) {
+                              _normalizeEmailInput(value);
+                            },
                           ),
                           const SizedBox(height: 20.0),
                           TextFormField(
@@ -131,8 +150,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               suffixIcon: IconButton(
                                 icon: Icon(
                                   _obscurePassword
-                                      ? Icons.visibility
-                                      : Icons.visibility_off,
+                                      ? Icons.visibility_off
+                                      : Icons.visibility,
                                   color: Colors.orange,
                                 ),
                                 onPressed: () {

@@ -23,7 +23,8 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
   List<dynamic> _requests = [];
   bool _isLoading = true;
   String _errorMessage = '';
-  Map<String, bool> _processingRequests = {};
+
+  Map<String, String?> _processingRequestAction = {};
   late Map<String, dynamic> _currentRideDetails;
 
   @override
@@ -40,24 +41,19 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
 
   void _loadRequests() {
     if (!mounted) return;
-
     setState(() {
       _isLoading = true;
       _errorMessage = '';
     });
-
     try {
       final requests = _currentRideDetails['requests'] ?? [];
-
       if (!mounted) return;
-
       setState(() {
         _requests = requests;
         _isLoading = false;
       });
     } catch (error) {
       if (!mounted) return;
-
       setState(() {
         _errorMessage = 'Error loading requests: $error';
         _isLoading = false;
@@ -73,7 +69,6 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
           }
           return false;
         }).length;
-
     final approvedRequests =
         _requests.where((req) {
           if (req is Map<String, dynamic> && req.containsKey('status')) {
@@ -81,7 +76,6 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
           }
           return false;
         }).length;
-
     final rejectedRequests =
         _requests.where((req) {
           if (req is Map<String, dynamic> && req.containsKey('status')) {
@@ -89,10 +83,8 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
           }
           return false;
         }).length;
-
     final capacity = _currentRideDetails['capacity'] ?? 0;
     final availableSeats = capacity - approvedRequests;
-
     return {
       'pending': pendingRequests,
       'approved': approvedRequests,
@@ -256,7 +248,7 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
                                     SizedBox(width: 8),
                                     Expanded(
                                       child: Text(
-                                        'Capacity: ${stats['capacity']} | Available: ${stats['available']} | Approved: ${stats['approved']}',
+                                        'Capacity: ${stats['capacity']} | Approved: ${stats['approved']} | Available: ${stats['available']}',
                                         style: TextStyle(
                                           color: Colors.blue[700],
                                           fontWeight: FontWeight.w500,
@@ -358,12 +350,15 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
                           itemBuilder: (context, index) {
                             final request = _requests[index];
                             final requestId = _getRequestId(request, index);
-
                             return RequestItem(
                               request: request,
                               requestId: requestId,
-                              isProcessing:
-                                  _processingRequests[requestId] ?? false,
+                              isAccepting:
+                                  _processingRequestAction[requestId] ==
+                                  'accept',
+                              isRejecting:
+                                  _processingRequestAction[requestId] ==
+                                  'reject',
                               canApprove: stats['available']! > 0,
                               onApprove:
                                   () => _handleRequestAction(
@@ -420,7 +415,8 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
     if (!mounted) return;
 
     setState(() {
-      _processingRequests[requestId] = true;
+      _processingRequestAction[requestId] =
+          action == 'approved' ? 'accept' : 'reject';
     });
 
     try {
@@ -442,13 +438,11 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
                 final updatedRequest = Map<String, dynamic>.from(request);
                 updatedRequest['status'] = action;
                 _requests[i] = updatedRequest;
-
                 break;
               }
             }
           }
-
-          _processingRequests[requestId] = false;
+          _processingRequestAction.remove(requestId);
         });
 
         if (widget.onRequestStatusChanged != null) {
@@ -472,9 +466,8 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
         );
       } else {
         setState(() {
-          _processingRequests[requestId] = false;
+          _processingRequestAction.remove(requestId);
         });
-
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(result['message'] ?? 'Failed to update request'),
@@ -485,14 +478,9 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
       }
     } catch (error) {
       if (!mounted) return;
-
-      print('DEBUG: Error in _handleRequestAction: $error');
-      print('DEBUG: Error type: ${error.runtimeType}');
-
       setState(() {
-        _processingRequests[requestId] = false;
+        _processingRequestAction.remove(requestId);
       });
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error updating request: $error'),
@@ -507,7 +495,8 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
 class RequestItem extends StatelessWidget {
   final dynamic request;
   final String requestId;
-  final bool isProcessing;
+  final bool isAccepting;
+  final bool isRejecting;
   final bool canApprove;
   final VoidCallback onApprove;
   final VoidCallback onReject;
@@ -516,7 +505,8 @@ class RequestItem extends StatelessWidget {
     Key? key,
     required this.request,
     required this.requestId,
-    required this.isProcessing,
+    required this.isAccepting,
+    required this.isRejecting,
     required this.canApprove,
     required this.onApprove,
     required this.onReject,
@@ -558,7 +548,6 @@ class RequestItem extends StatelessWidget {
     MaterialColor statusColor;
     IconData statusIcon;
     String statusText;
-
     switch (status) {
       case 'approved':
         statusColor = Colors.green;
@@ -657,9 +646,11 @@ class RequestItem extends StatelessWidget {
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed:
-                          (isProcessing || !canApprove) ? null : onApprove,
+                          (isAccepting || isRejecting || !canApprove)
+                              ? null
+                              : onApprove,
                       icon:
-                          isProcessing
+                          isAccepting
                               ? SizedBox(
                                 width: 16,
                                 height: 16,
@@ -670,7 +661,7 @@ class RequestItem extends StatelessWidget {
                               )
                               : Icon(Icons.check, size: 18),
                       label: Text(
-                        isProcessing
+                        isAccepting
                             ? 'Processing...'
                             : !canApprove
                             ? 'Ride Full'
@@ -690,9 +681,9 @@ class RequestItem extends StatelessWidget {
                   SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton.icon(
-                      onPressed: isProcessing ? null : onReject,
+                      onPressed: (isAccepting || isRejecting) ? null : onReject,
                       icon:
-                          isProcessing
+                          isRejecting
                               ? SizedBox(
                                 width: 16,
                                 height: 16,
@@ -702,7 +693,7 @@ class RequestItem extends StatelessWidget {
                                 ),
                               )
                               : Icon(Icons.close, size: 18),
-                      label: Text(isProcessing ? 'Processing...' : 'Reject'),
+                      label: Text(isRejecting ? 'Processing...' : 'Reject'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red,
                         foregroundColor: Colors.white,

@@ -1,20 +1,32 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:travel_buddy/config/api_config.dart';
 
 class GoogleMapsService {
   static const String _baseUrl = 'https://maps.googleapis.com/maps/api';
 
-  static Future<List<PlacePrediction>> getPlacePredictions(String input) async {
+  static Future<List<PlacePrediction>> getPlacePredictions(
+    String input, {
+    bool restrictToCountry = false,
+    String countryCode = 'in',
+    List<String>? types,
+  }) async {
     if (input.isEmpty) return [];
 
     try {
-      final url =
+      String url =
           '$_baseUrl/place/autocomplete/json'
           '?input=${Uri.encodeComponent(input)}'
-          '&key=${ApiConfig.googleMapsApiKey}'
-          '&types=geocode'
-          '&components=country:in';
+          '&key=${ApiConfig.googleMapsApiKey}';
+
+      if (types != null && types.isNotEmpty) {
+        url += '&types=${types.join('|')}';
+      }
+
+      if (restrictToCountry && countryCode.isNotEmpty) {
+        url += '&components=country:$countryCode';
+      }
 
       final response = await http.get(Uri.parse(url));
       final data = jsonDecode(response.body);
@@ -32,13 +44,57 @@ class GoogleMapsService {
     }
   }
 
+  static Future<List<PlacePrediction>> searchPlaces(
+    String query, {
+    String? location,
+    int? radius,
+    List<String>? types,
+    String? language,
+  }) async {
+    if (query.isEmpty) return [];
+
+    try {
+      String url =
+          '$_baseUrl/place/textsearch/json'
+          '?query=${Uri.encodeComponent(query)}'
+          '&key=${ApiConfig.googleMapsApiKey}';
+
+      if (location != null) {
+        url += '&location=$location';
+      }
+      if (radius != null) {
+        url += '&radius=$radius';
+      }
+      if (types != null && types.isNotEmpty) {
+        url += '&type=${types.first}';
+      }
+      if (language != null) {
+        url += '&language=$language';
+      }
+
+      final response = await http.get(Uri.parse(url));
+      final data = jsonDecode(response.body);
+
+      if (data['status'] == 'OK') {
+        final results = data['results'] as List;
+        return results
+            .map((result) => PlacePrediction.fromTextSearch(result))
+            .toList();
+      }
+      return [];
+    } catch (error) {
+      print('Error searching places: $error');
+      return [];
+    }
+  }
+
   static Future<PlaceDetails?> getPlaceDetails(String placeId) async {
     try {
       final url =
           '$_baseUrl/place/details/json'
           '?place_id=$placeId'
           '&key=${ApiConfig.googleMapsApiKey}'
-          '&fields=geometry,formatted_address,name';
+          '&fields=geometry,formatted_address,name,address_components,types';
 
       final response = await http.get(Uri.parse(url));
       final data = jsonDecode(response.body);
@@ -104,21 +160,46 @@ class PlacePrediction {
   final String description;
   final String mainText;
   final String secondaryText;
+  final List<String> types;
 
   PlacePrediction({
     required this.placeId,
     required this.description,
     required this.mainText,
     required this.secondaryText,
+    required this.types,
   });
 
   factory PlacePrediction.fromJson(Map<String, dynamic> json) {
     return PlacePrediction(
-      placeId: json['place_id'],
-      description: json['description'],
-      mainText: json['structured_formatting']['main_text'],
-      secondaryText: json['structured_formatting']['secondary_text'] ?? '',
+      placeId: json['place_id'] ?? '',
+      description: json['description'] ?? '',
+      mainText: json['structured_formatting']?['main_text'] ?? '',
+      secondaryText: json['structured_formatting']?['secondary_text'] ?? '',
+      types: List<String>.from(json['types'] ?? []),
     );
+  }
+
+  factory PlacePrediction.fromTextSearch(Map<String, dynamic> json) {
+    return PlacePrediction(
+      placeId: json['place_id'] ?? '',
+      description: json['formatted_address'] ?? json['name'] ?? '',
+      mainText: json['name'] ?? '',
+      secondaryText: json['formatted_address'] ?? '',
+      types: List<String>.from(json['types'] ?? []),
+    );
+  }
+
+  IconData get icon {
+    if (types.contains('airport')) return Icons.flight;
+    if (types.contains('train_station')) return Icons.train;
+    if (types.contains('bus_station')) return Icons.directions_bus;
+    if (types.contains('university')) return Icons.school;
+    if (types.contains('hospital')) return Icons.local_hospital;
+    if (types.contains('shopping_mall')) return Icons.shopping_cart;
+    if (types.contains('restaurant')) return Icons.restaurant;
+    if (types.contains('gas_station')) return Icons.local_gas_station;
+    return Icons.location_on;
   }
 }
 
@@ -126,19 +207,50 @@ class PlaceDetails {
   final String formattedAddress;
   final String name;
   final LatLng location;
+  final List<AddressComponent> addressComponents;
+  final List<String> types;
 
   PlaceDetails({
     required this.formattedAddress,
     required this.name,
     required this.location,
+    required this.addressComponents,
+    required this.types,
   });
 
   factory PlaceDetails.fromJson(Map<String, dynamic> json) {
     final geometry = json['geometry']['location'];
+    final addressComponentsList = json['address_components'] as List? ?? [];
+
     return PlaceDetails(
-      formattedAddress: json['formatted_address'],
-      name: json['name'],
+      formattedAddress: json['formatted_address'] ?? '',
+      name: json['name'] ?? '',
       location: LatLng(geometry['lat'], geometry['lng']),
+      addressComponents:
+          addressComponentsList
+              .map((component) => AddressComponent.fromJson(component))
+              .toList(),
+      types: List<String>.from(json['types'] ?? []),
+    );
+  }
+}
+
+class AddressComponent {
+  final String longName;
+  final String shortName;
+  final List<String> types;
+
+  AddressComponent({
+    required this.longName,
+    required this.shortName,
+    required this.types,
+  });
+
+  factory AddressComponent.fromJson(Map<String, dynamic> json) {
+    return AddressComponent(
+      longName: json['long_name'] ?? '',
+      shortName: json['short_name'] ?? '',
+      types: List<String>.from(json['types'] ?? []),
     );
   }
 }

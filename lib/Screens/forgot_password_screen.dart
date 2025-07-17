@@ -306,6 +306,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             prefixIcon: Icon(Icons.email, color: Colors.orange),
             hintText: 'Enter your registered email',
           ),
+          onChanged: (value) {
+            if (value != value.toLowerCase()) {
+              final cursorPosition = _emailController.selection.baseOffset;
+              _emailController.value = _emailController.value.copyWith(
+                text: value.toLowerCase(),
+                selection: TextSelection.collapsed(offset: cursorPosition),
+              );
+            }
+          },
           onFieldSubmitted: (_) => _handleNextStep(),
         ),
       ],
@@ -367,7 +376,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             prefixIcon: const Icon(Icons.lock_outline, color: Colors.orange),
             suffixIcon: IconButton(
               icon: Icon(
-                _obscureNewPassword ? Icons.visibility : Icons.visibility_off,
+                _obscureNewPassword ? Icons.visibility_off : Icons.visibility,
                 color: Colors.orange,
               ),
               onPressed: () {
@@ -395,8 +404,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             suffixIcon: IconButton(
               icon: Icon(
                 _obscureConfirmPassword
-                    ? Icons.visibility
-                    : Icons.visibility_off,
+                    ? Icons.visibility_off
+                    : Icons.visibility,
                 color: Colors.orange,
               ),
               onPressed: () {

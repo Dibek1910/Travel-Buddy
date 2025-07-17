@@ -9,16 +9,26 @@ class AuthService {
   static const String _userIdKey = 'userId';
   static const String _userNameKey = 'userName';
 
+  static String _normalizeEmail(String email) {
+    final normalized = email.toLowerCase().trim();
+
+    return normalized;
+  }
+
   static Future<Map<String, dynamic>> login(
     String email,
     String password,
   ) async {
     try {
+      final normalizedEmail = _normalizeEmail(email);
+
+      final requestBody = {'email': normalizedEmail, 'password': password};
+
       final response = await http
           .post(
             Uri.parse(ApiConfig.login),
             headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({'email': email, 'password': password}),
+            body: jsonEncode(requestBody),
           )
           .timeout(const Duration(seconds: 30));
 
@@ -62,7 +72,6 @@ class AuthService {
         };
       }
     } catch (error) {
-      print('Login error: $error');
       return {'success': false, 'message': _getErrorMessage(error)};
     }
   }
@@ -74,23 +83,22 @@ class AuthService {
     String phoneNo,
   ) async {
     try {
-      print('Attempting registration for: $email');
+      final normalizedEmail = _normalizeEmail(email);
+
+      final requestBody = {
+        'firstName': firstName,
+        'email': normalizedEmail,
+        'password': password,
+        'phoneNo': phoneNo,
+      };
 
       final response = await http
           .post(
             Uri.parse(ApiConfig.register),
             headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'firstName': firstName,
-              'email': email,
-              'password': password,
-              'phoneNo': phoneNo,
-            }),
+            body: jsonEncode(requestBody),
           )
           .timeout(const Duration(seconds: 30));
-
-      print('Register response status: ${response.statusCode}');
-      print('Register response body: ${response.body}');
 
       final responseData = jsonDecode(response.body);
 
@@ -110,18 +118,21 @@ class AuthService {
         'user': responseData['user'],
       };
     } catch (error) {
-      print('Registration error: $error');
       return {'success': false, 'message': _getErrorMessage(error)};
     }
   }
 
   static Future<Map<String, dynamic>> sendOtp(String email) async {
     try {
+      final normalizedEmail = _normalizeEmail(email);
+
+      final requestBody = {'email': normalizedEmail};
+
       final response = await http
           .post(
             Uri.parse(ApiConfig.sendOtp),
             headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({'email': email}),
+            body: jsonEncode(requestBody),
           )
           .timeout(const Duration(seconds: 30));
 
@@ -140,11 +151,15 @@ class AuthService {
     String otp,
   ) async {
     try {
+      final normalizedEmail = _normalizeEmail(email);
+
+      final requestBody = {'email': normalizedEmail, 'otp': otp};
+
       final response = await http
           .post(
             Uri.parse(ApiConfig.verifyOtp),
             headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({'email': email, 'otp': otp}),
+            body: jsonEncode(requestBody),
           )
           .timeout(const Duration(seconds: 30));
 
@@ -163,11 +178,15 @@ class AuthService {
     String newPassword,
   ) async {
     try {
+      final normalizedEmail = _normalizeEmail(email);
+
+      final requestBody = {'email': normalizedEmail, 'password': newPassword};
+
       final response = await http
           .post(
             Uri.parse(ApiConfig.updatePassword),
             headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({'email': email, 'password': newPassword}),
+            body: jsonEncode(requestBody),
           )
           .timeout(const Duration(seconds: 30));
 
@@ -198,7 +217,6 @@ class AuthService {
 
       return response.statusCode == 200;
     } catch (error) {
-      print('Token validation error: $error');
       return false;
     }
   }

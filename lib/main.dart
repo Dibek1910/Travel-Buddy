@@ -51,6 +51,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Travel Buddy - Carpool App',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primarySwatch: Colors.orange,
         visualDensity: VisualDensity.adaptivePlatformDensity,
@@ -70,7 +71,7 @@ class MyApp extends StatelessWidget {
             ),
           ),
         ),
-        cardTheme: CardTheme(
+        cardTheme: CardThemeData(
           elevation: 4,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -84,7 +85,6 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
-      debugShowCheckedModeBanner: false,
       home: isAuthenticated ? const AuthenticatedHome() : const HomeScreen(),
       routes: {
         '/home': (context) => const HomeScreen(),
@@ -126,7 +126,6 @@ class _AuthenticatedHomeState extends State<AuthenticatedHome> {
         setState(() {
           isLoading = false;
         });
-
         Navigator.of(context).pushReplacementNamed('/home');
       }
     }
