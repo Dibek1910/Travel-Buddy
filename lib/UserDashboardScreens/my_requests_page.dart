@@ -10,21 +10,21 @@ class MyRequestsPage extends StatefulWidget {
   final VoidCallback onSwitchToSearchRide;
 
   const MyRequestsPage({
-    Key? key,
+    super.key,
     required this.authToken,
     this.updateRideStatusCallback,
     required this.onSwitchToSearchRide,
-  }) : super(key: key);
+  });
 
   @override
-  _MyRequestsPageState createState() => _MyRequestsPageState();
+  MyRequestsPageState createState() => MyRequestsPageState();
 }
 
-class _MyRequestsPageState extends State<MyRequestsPage> {
+class MyRequestsPageState extends State<MyRequestsPage> {
   List<dynamic> _requests = [];
   bool _isLoading = true;
   String _errorMessage = '';
-  Map<String, bool> _cancellingRequests = {};
+  Map<String, bool> cancellingRequests = {};
 
   @override
   void initState() {
@@ -342,10 +342,10 @@ class _MyRequestsPageState extends State<MyRequestsPage> {
                     SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: _loadRequests,
-                      child: Text('Try Again'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.orange,
                       ),
+                      child: Text('Try Again'),
                     ),
                   ],
                 ),
@@ -401,7 +401,7 @@ class _MyRequestsPageState extends State<MyRequestsPage> {
                     return RequestItem(
                       request: _requests[index],
                       isCancelling:
-                          _cancellingRequests[_requests[index]['_id']] ?? false,
+                          cancellingRequests[_requests[index]['_id']] ?? false,
                       onCancel: () => _cancelRequest(_requests[index]['_id']),
                       onOpenWhatsApp: _openWhatsApp,
                     );
@@ -415,7 +415,7 @@ class _MyRequestsPageState extends State<MyRequestsPage> {
     if (!mounted) return;
 
     setState(() {
-      _cancellingRequests[requestId] = true;
+      cancellingRequests[requestId] = true;
     });
 
     try {
@@ -426,7 +426,7 @@ class _MyRequestsPageState extends State<MyRequestsPage> {
       if (result['success']) {
         setState(() {
           _requests.removeWhere((req) => req['_id'] == requestId);
-          _cancellingRequests.remove(requestId);
+          cancellingRequests.remove(requestId);
         });
 
         if (widget.updateRideStatusCallback != null) {
@@ -448,7 +448,7 @@ class _MyRequestsPageState extends State<MyRequestsPage> {
         );
       } else {
         setState(() {
-          _cancellingRequests[requestId] = false;
+          cancellingRequests[requestId] = false;
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -463,7 +463,7 @@ class _MyRequestsPageState extends State<MyRequestsPage> {
       if (!mounted) return;
 
       setState(() {
-        _cancellingRequests[requestId] = false;
+        cancellingRequests[requestId] = false;
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -484,12 +484,12 @@ class RequestItem extends StatelessWidget {
   final Function(String) onOpenWhatsApp;
 
   const RequestItem({
-    Key? key,
+    super.key,
     required this.request,
     required this.isCancelling,
     required this.onCancel,
     required this.onOpenWhatsApp,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -593,7 +593,7 @@ class RequestItem extends StatelessWidget {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: statusColor.withOpacity(0.1),
+                            color: statusColor.withAlpha(25),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(color: statusColor),
                           ),

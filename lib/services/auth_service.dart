@@ -2,8 +2,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:travel_buddy/config/api_config.dart';
+import 'package:logger/logger.dart';
 
 class AuthService {
+  static final Logger _logger = Logger();
   static const String _authTokenKey = 'authToken';
   static const String _userDataKey = 'userData';
   static const String _userIdKey = 'userId';
@@ -108,7 +110,7 @@ class AuthService {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('userPhoneNumber', phoneNo);
         } catch (e) {
-          print('Error storing phone number: $e');
+          _logger.e('Error storing phone number', error: e);
         }
       }
 

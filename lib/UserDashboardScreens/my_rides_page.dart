@@ -1,24 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:logger/logger.dart';
 import 'package:travel_buddy/services/ride_service.dart';
-import 'package:travel_buddy/utils/RideRequestManagementPage.dart';
-import 'package:travel_buddy/utils/UpdateRideDetailsPage.dart';
+import 'package:travel_buddy/utils/ride_request_management_page.dart';
+import 'package:travel_buddy/utils/update_ride_details_page.dart';
 
 class MyRidesPage extends StatefulWidget {
   final String authToken;
   final VoidCallback? onSwitchToCreateRide;
 
   const MyRidesPage({
-    Key? key,
+    super.key,
     required this.authToken,
     this.onSwitchToCreateRide,
-  }) : super(key: key);
+  });
 
   @override
-  _MyRidesPageState createState() => _MyRidesPageState();
+  MyRidesPageState createState() => MyRidesPageState();
 }
 
-class _MyRidesPageState extends State<MyRidesPage> {
+class MyRidesPageState extends State<MyRidesPage> {
+  final logger = Logger();
   List<dynamic> _createdRides = [];
   bool _isLoadingCreated = true;
   String _errorMessageCreated = '';
@@ -113,23 +115,19 @@ class _MyRidesPageState extends State<MyRidesPage> {
               updatedRide['requests'] = requests;
               _createdRides[rideIndex] = updatedRide;
 
-              print(
-                'DEBUG: Successfully updated ride data - RideID: $rideId, RequestID: $requestId, Status: $newStatus',
-              );
+              logger.d('Successfully updated ride data - RideID: $rideId');
             } else {
-              print(
-                'DEBUG: Warning - Could not find request to update with ID: $requestId',
+              logger.d(
+                'Warning - Could not find request to update with ID: $requestId',
               );
             }
           }
         } else {
-          print(
-            'DEBUG: Warning - Could not find ride to update with ID: $rideId',
-          );
+          logger.w('Warning - Could not find ride to update with ID: $rideId');
         }
       });
     } catch (error) {
-      print('DEBUG: Error in _updateRideData: $error');
+      logger.e('Error in _updateRideData', error: error);
     }
   }
 
@@ -171,6 +169,7 @@ class _MyRidesPageState extends State<MyRidesPage> {
             });
           });
 
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Row(
@@ -185,6 +184,7 @@ class _MyRidesPageState extends State<MyRidesPage> {
             ),
           );
         } else {
+          if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(result['message'] ?? 'Failed to cancel ride'),
@@ -194,6 +194,7 @@ class _MyRidesPageState extends State<MyRidesPage> {
           );
         }
       } catch (error) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error cancelling ride: $error'),
@@ -257,8 +258,8 @@ class _MyRidesPageState extends State<MyRidesPage> {
             SizedBox(height: 16),
             ElevatedButton(
               onPressed: _loadCreatedRides,
-              child: Text('Try Again'),
               style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+              child: Text('Try Again'),
             ),
           ],
         ),
@@ -320,14 +321,18 @@ class _MyRidesPageState extends State<MyRidesPage> {
           return CreatedRideItem(
             ride: _createdRides[index],
             onManageRequests: (ride) async {
+              final localContext = context;
+
               if (ride is Map<String, dynamic>) {
                 final rideId = ride['_id']?.toString();
                 if (rideId != null) {
                   final rideDetails = await RideService.getRideById(rideId);
 
+                  if (!localContext.mounted) return;
+
                   if (rideDetails['success']) {
                     Navigator.push(
-                      context,
+                      localContext,
                       MaterialPageRoute(
                         builder:
                             (context) => RideRequestManagementPage(
@@ -337,10 +342,10 @@ class _MyRidesPageState extends State<MyRidesPage> {
                             ),
                       ),
                     ).then((_) {
-                      _loadCreatedRides();
+                      if (mounted) _loadCreatedRides();
                     });
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    ScaffoldMessenger.of(localContext).showSnackBar(
                       SnackBar(
                         content: Text('Failed to load ride details'),
                         backgroundColor: Colors.red,
@@ -348,7 +353,8 @@ class _MyRidesPageState extends State<MyRidesPage> {
                     );
                   }
                 } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  if (!localContext.mounted) return;
+                  ScaffoldMessenger.of(localContext).showSnackBar(
                     SnackBar(
                       content: Text('Invalid ride data'),
                       backgroundColor: Colors.red,
@@ -395,13 +401,13 @@ class CreatedRideItem extends StatelessWidget {
   final VoidCallback onRefresh;
 
   const CreatedRideItem({
-    Key? key,
+    super.key,
     required this.ride,
     required this.onManageRequests,
     required this.onEditRide,
     required this.onCancelRide,
     required this.onRefresh,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

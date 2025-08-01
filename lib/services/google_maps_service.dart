@@ -39,7 +39,6 @@ class GoogleMapsService {
       }
       return [];
     } catch (error) {
-      print('Error getting place predictions: $error');
       return [];
     }
   }
@@ -83,7 +82,6 @@ class GoogleMapsService {
       }
       return [];
     } catch (error) {
-      print('Error searching places: $error');
       return [];
     }
   }
@@ -104,7 +102,6 @@ class GoogleMapsService {
       }
       return null;
     } catch (error) {
-      print('Error getting place details: $error');
       return null;
     }
   }
@@ -125,7 +122,6 @@ class GoogleMapsService {
       }
       return null;
     } catch (error) {
-      print('Error geocoding address: $error');
       return null;
     }
   }
@@ -149,7 +145,6 @@ class GoogleMapsService {
       }
       return null;
     } catch (error) {
-      print('Error getting directions: $error');
       return null;
     }
   }

@@ -6,14 +6,13 @@ import 'package:travel_buddy/services/auth_service.dart';
 class RideDetailsScreen extends StatefulWidget {
   final dynamic rideDetails;
 
-  const RideDetailsScreen({Key? key, required this.rideDetails})
-    : super(key: key);
+  const RideDetailsScreen({super.key, required this.rideDetails});
 
   @override
-  _RideDetailsScreenState createState() => _RideDetailsScreenState();
+  RideDetailsScreenState createState() => RideDetailsScreenState();
 }
 
-class _RideDetailsScreenState extends State<RideDetailsScreen> {
+class RideDetailsScreenState extends State<RideDetailsScreen> {
   bool _isLoading = false;
   String? _currentUserId;
 

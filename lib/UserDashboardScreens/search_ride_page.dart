@@ -1,21 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:logger/logger.dart';
 import 'package:travel_buddy/services/ride_service.dart';
 import 'package:travel_buddy/services/interest_service.dart';
 import 'package:travel_buddy/services/auth_service.dart';
-import 'package:travel_buddy/utils/RideDetailsScreen.dart';
+import 'package:travel_buddy/utils/ride_details_screen.dart';
 import 'package:travel_buddy/widgets/location_autocomplete_field.dart';
 
 class SearchRidePage extends StatefulWidget {
   final String authToken;
 
-  const SearchRidePage({Key? key, required this.authToken}) : super(key: key);
+  const SearchRidePage({super.key, required this.authToken});
 
   @override
-  _SearchRidePageState createState() => _SearchRidePageState();
+  SearchRidePageState createState() => SearchRidePageState();
 }
 
-class _SearchRidePageState extends State<SearchRidePage> {
+class SearchRidePageState extends State<SearchRidePage> {
+  final logger = Logger();
   final TextEditingController _fromController = TextEditingController();
   final TextEditingController _toController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
@@ -40,7 +42,7 @@ class _SearchRidePageState extends State<SearchRidePage> {
         _currentUserId = userId;
       });
     } catch (e) {
-      print('Error getting current user ID: $e');
+      logger.e('Error getting current user ID:', error: e);
     }
   }
 
@@ -83,7 +85,7 @@ class _SearchRidePageState extends State<SearchRidePage> {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
+              color: Colors.grey.withValues(alpha: 26),
               spreadRadius: 1,
               blurRadius: 4,
               offset: Offset(0, 1),
@@ -154,7 +156,7 @@ class _SearchRidePageState extends State<SearchRidePage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 26),
             spreadRadius: 2,
             blurRadius: 8,
             offset: Offset(0, 2),
@@ -378,8 +380,8 @@ class _SearchRidePageState extends State<SearchRidePage> {
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: _searchRides,
-              child: Text('Try Again'),
               style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+              child: Text('Try Again'),
             ),
           ],
         ),
@@ -497,11 +499,11 @@ class _SearchRidePageState extends State<SearchRidePage> {
                       _isSearchFormExpanded = false;
                     });
                   },
-                  child: Text('Hide Search'),
                   style: TextButton.styleFrom(
                     foregroundColor: Colors.blue,
                     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   ),
+                  child: Text('Hide Search'),
                 ),
             ],
           ),
@@ -834,7 +836,7 @@ class _SearchRidePageState extends State<SearchRidePage> {
         _fromController.text,
         _toController.text,
       );
-
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
@@ -852,6 +854,7 @@ class _SearchRidePageState extends State<SearchRidePage> {
         ),
       );
     } catch (error) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(

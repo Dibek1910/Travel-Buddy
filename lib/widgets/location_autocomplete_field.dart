@@ -12,7 +12,7 @@ class LocationAutocompleteField extends StatefulWidget {
   final String? hintText;
 
   const LocationAutocompleteField({
-    Key? key,
+    super.key,
     required this.label,
     this.initialValue,
     required this.onLocationSelected,
@@ -21,14 +21,14 @@ class LocationAutocompleteField extends StatefulWidget {
     this.countryCode = 'in',
     this.types,
     this.hintText,
-  }) : super(key: key);
+  });
 
   @override
-  _LocationAutocompleteFieldState createState() =>
-      _LocationAutocompleteFieldState();
+  LocationAutocompleteFieldState createState() =>
+      LocationAutocompleteFieldState();
 }
 
-class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
+class LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
   late TextEditingController _controller;
   List<PlacePrediction> _predictions = [];
   bool _isLoading = false;
@@ -167,7 +167,7 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
               border: Border.all(color: Colors.grey.shade300),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withAlpha(26),
                   blurRadius: 4,
                   offset: Offset(0, 2),
                 ),
@@ -175,7 +175,7 @@ class _LocationAutocompleteFieldState extends State<LocationAutocompleteField> {
             ),
             child:
                 _isLoading
-                    ? Container(
+                    ? SizedBox(
                       height: 60,
                       child: Center(
                         child: Row(

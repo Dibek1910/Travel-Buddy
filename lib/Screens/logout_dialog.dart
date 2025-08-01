@@ -3,13 +3,13 @@ import 'package:travel_buddy/services/auth_service.dart';
 import 'package:travel_buddy/Screens/home_screen.dart';
 
 class LogoutDialog extends StatefulWidget {
-  const LogoutDialog({Key? key}) : super(key: key);
+  const LogoutDialog({super.key});
 
   @override
-  _LogoutDialogState createState() => _LogoutDialogState();
+  LogoutDialogState createState() => LogoutDialogState();
 }
 
-class _LogoutDialogState extends State<LogoutDialog> {
+class LogoutDialogState extends State<LogoutDialog> {
   bool _isLoggingOut = false;
 
   @override
@@ -61,7 +61,7 @@ class _LogoutDialogState extends State<LogoutDialog> {
     try {
       await AuthService.logout();
 
-      if (mounted) {
+      if (dialogContext.mounted) {
         Navigator.of(dialogContext).pop();
 
         Navigator.of(dialogContext).pushAndRemoveUntil(
@@ -70,7 +70,7 @@ class _LogoutDialogState extends State<LogoutDialog> {
         );
       }
     } catch (error) {
-      if (mounted) {
+      if (dialogContext.mounted) {
         setState(() {
           _isLoggingOut = false;
         });

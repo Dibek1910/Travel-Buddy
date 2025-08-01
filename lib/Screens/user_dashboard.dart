@@ -7,11 +7,12 @@ import 'package:travel_buddy/UserDashboardScreens/my_rides_page.dart';
 import 'package:travel_buddy/UserDashboardScreens/search_ride_page.dart';
 import 'package:travel_buddy/utils/my_profile.dart';
 import 'package:travel_buddy/services/auth_service.dart';
+import 'package:travel_buddy/Screens/terms_and_conditions_screen.dart';
 
 class UserDashboard extends StatefulWidget {
   final String authToken;
 
-  const UserDashboard({Key? key, required this.authToken}) : super(key: key);
+  const UserDashboard({super.key, required this.authToken});
 
   @override
   UserDashboardState createState() => UserDashboardState();
@@ -66,7 +67,7 @@ class UserDashboardState extends State<UserDashboard>
             ElevatedButton(
               onPressed: () async {
                 await AuthService.logout();
-                if (mounted) {
+                if (context.mounted) {
                   Navigator.of(
                     context,
                   ).pushNamedAndRemoveUntil('/home', (route) => false);
@@ -180,7 +181,6 @@ class UserDashboardState extends State<UserDashboard>
         body: IndexedStack(index: _selectedIndex, children: _widgetOptions),
         bottomNavigationBar: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
-
           items: const <BottomNavigationBarItem>[
             BottomNavigationBarItem(
               icon: Icon(Icons.search),
@@ -242,7 +242,7 @@ class UserDashboardState extends State<UserDashboard>
                 Text(
                   'Your Carpooling Companion',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withAlpha(230),
                     fontSize: 14,
                   ),
                 ),
@@ -261,6 +261,19 @@ class UserDashboardState extends State<UserDashboard>
             },
           ),
           const Divider(),
+          ListTile(
+            leading: const Icon(Icons.description, color: Colors.blueGrey),
+            title: const Text('Terms and Conditions'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const TermsAndConditionsScreen(),
+                ),
+              );
+            },
+          ),
           ListTile(
             leading: const Icon(Icons.info_outline, color: Colors.grey),
             title: const Text('About'),

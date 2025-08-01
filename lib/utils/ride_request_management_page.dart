@@ -8,23 +8,23 @@ class RideRequestManagementPage extends StatefulWidget {
   final Function(String, String, String)? onRequestStatusChanged;
 
   const RideRequestManagementPage({
-    Key? key,
+    super.key,
     required this.rideId,
     required this.rideDetails,
     this.onRequestStatusChanged,
-  }) : super(key: key);
+  });
 
   @override
-  _RideRequestManagementPageState createState() =>
-      _RideRequestManagementPageState();
+  RideRequestManagementPageState createState() =>
+      RideRequestManagementPageState();
 }
 
-class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
+class RideRequestManagementPageState extends State<RideRequestManagementPage> {
   List<dynamic> _requests = [];
   bool _isLoading = true;
   String _errorMessage = '';
 
-  Map<String, String?> _processingRequestAction = {};
+  final Map<String, String?> _processingRequestAction = {};
   late Map<String, dynamic> _currentRideDetails;
 
   @override
@@ -157,10 +157,10 @@ class _RideRequestManagementPageState extends State<RideRequestManagementPage> {
                     SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: _loadRequests,
-                      child: Text('Try Again'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.orange,
                       ),
+                      child: Text('Try Again'),
                     ),
                   ],
                 ),
@@ -502,7 +502,7 @@ class RequestItem extends StatelessWidget {
   final VoidCallback onReject;
 
   const RequestItem({
-    Key? key,
+    super.key,
     required this.request,
     required this.requestId,
     required this.isAccepting,
@@ -510,7 +510,7 @@ class RequestItem extends StatelessWidget {
     required this.canApprove,
     required this.onApprove,
     required this.onReject,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

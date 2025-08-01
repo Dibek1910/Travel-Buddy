@@ -37,7 +37,6 @@ Future<bool> _checkAuthenticationStatus() async {
 
     return true;
   } catch (e) {
-    print('Error checking authentication: $e');
     return false;
   }
 }
@@ -45,7 +44,7 @@ Future<bool> _checkAuthenticationStatus() async {
 class MyApp extends StatelessWidget {
   final bool isAuthenticated;
 
-  const MyApp({Key? key, required this.isAuthenticated}) : super(key: key);
+  const MyApp({super.key, required this.isAuthenticated});
 
   @override
   Widget build(BuildContext context) {
@@ -96,7 +95,7 @@ class MyApp extends StatelessWidget {
 }
 
 class AuthenticatedHome extends StatefulWidget {
-  const AuthenticatedHome({Key? key}) : super(key: key);
+  const AuthenticatedHome({super.key});
 
   @override
   State<AuthenticatedHome> createState() => _AuthenticatedHomeState();

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:logger/logger.dart';
 import 'package:travel_buddy/services/ride_service.dart';
 import 'package:travel_buddy/services/auth_service.dart';
 import 'package:travel_buddy/widgets/location_autocomplete_field.dart';
@@ -9,16 +10,17 @@ class UpdateRideDetailsPage extends StatefulWidget {
   final VoidCallback onRideUpdated;
 
   const UpdateRideDetailsPage({
-    Key? key,
+    super.key,
     required this.rideDetails,
     required this.onRideUpdated,
-  }) : super(key: key);
+  });
 
   @override
-  _UpdateRideDetailsPageState createState() => _UpdateRideDetailsPageState();
+  UpdateRideDetailsPageState createState() => UpdateRideDetailsPageState();
 }
 
-class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
+class UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
+  final logger = Logger();
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _fromController = TextEditingController();
   final TextEditingController _toController = TextEditingController();
@@ -68,7 +70,7 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
         _selectedTime = TimeOfDay.fromDateTime(dateTime);
         _dateController.text = DateFormat('yyyy-MM-dd').format(dateTime);
       } catch (e) {
-        print('Error parsing date: $e');
+        logger.e('Error parsing date', error: e);
       }
     }
   }
@@ -674,6 +676,7 @@ class _UpdateRideDetailsPageState extends State<UpdateRideDetailsPage> {
       });
 
       if (result['success']) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Row(

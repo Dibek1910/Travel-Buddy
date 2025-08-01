@@ -7,13 +7,13 @@ import 'package:travel_buddy/widgets/location_autocomplete_field.dart';
 class CreateRidePage extends StatefulWidget {
   final String authToken;
 
-  const CreateRidePage({Key? key, required this.authToken}) : super(key: key);
+  const CreateRidePage({super.key, required this.authToken});
 
   @override
-  _CreateRidePageState createState() => _CreateRidePageState();
+  CreateRidePageState createState() => CreateRidePageState();
 }
 
-class _CreateRidePageState extends State<CreateRidePage> {
+class CreateRidePageState extends State<CreateRidePage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _fromController = TextEditingController();
   final TextEditingController _toController = TextEditingController();

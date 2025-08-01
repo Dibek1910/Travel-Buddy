@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:travel_buddy/Screens/terms_and_conditions_screen.dart';
 import 'package:travel_buddy/services/auth_service.dart';
 
 class SignupScreen extends StatefulWidget {
+  const SignupScreen({super.key});
+
   @override
-  _SignupScreenState createState() => _SignupScreenState();
+  SignupScreenState createState() => SignupScreenState();
 }
 
-class _SignupScreenState extends State<SignupScreen> {
+class SignupScreenState extends State<SignupScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -18,6 +21,7 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _acceptedTerms = false;
   String _message = '';
 
   @override
@@ -311,10 +315,57 @@ class _SignupScreenState extends State<SignupScreen> {
                               ),
                             ),
                           ),
+
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Checkbox(
+                              value: _acceptedTerms,
+                              onChanged: (value) {
+                                setState(() {
+                                  _acceptedTerms = value ?? false;
+                                });
+                              },
+                              activeColor: Colors.orange,
+                            ),
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (context) =>
+                                              TermsAndConditionsScreen(),
+                                    ),
+                                  );
+                                },
+                                child: RichText(
+                                  text: TextSpan(
+                                    text: 'I agree to the ',
+                                    style: TextStyle(color: Colors.grey[800]),
+                                    children: [
+                                      TextSpan(
+                                        text: 'Terms and Conditions',
+                                        style: TextStyle(
+                                          color: Colors.orange,
+                                          decoration: TextDecoration.underline,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 16),
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: _isLoading ? null : _signUp,
+                            onPressed:
+                                _isLoading || !_acceptedTerms ? null : _signUp,
                             style: ElevatedButton.styleFrom(
                               padding: EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
@@ -380,6 +431,7 @@ class _SignupScreenState extends State<SignupScreen> {
                             ),
                           ],
                         ),
+                        SizedBox(height: 24),
                       ],
                     ),
                   ),
@@ -415,6 +467,8 @@ class _SignupScreenState extends State<SignupScreen> {
         cleanPhoneNumber,
       );
 
+      if (!mounted) return;
+
       setState(() {
         _isLoading = false;
         _message = result['message'];
@@ -436,10 +490,14 @@ class _SignupScreenState extends State<SignupScreen> {
         );
 
         Future.delayed(Duration(seconds: 1), () {
-          Navigator.pop(context);
+          if (mounted) {
+            Navigator.pop(context);
+          }
         });
       }
     } catch (error) {
+      if (!mounted) return;
+
       setState(() {
         _isLoading = false;
         _message = 'Error creating account: $error';

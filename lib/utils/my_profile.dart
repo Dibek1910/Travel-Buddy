@@ -3,13 +3,13 @@ import 'package:travel_buddy/services/user_service.dart';
 import 'package:travel_buddy/services/auth_service.dart';
 
 class MyProfile extends StatefulWidget {
-  const MyProfile({Key? key}) : super(key: key);
+  const MyProfile({super.key});
 
   @override
-  _MyProfileState createState() => _MyProfileState();
+  MyProfileState createState() => MyProfileState();
 }
 
-class _MyProfileState extends State<MyProfile> {
+class MyProfileState extends State<MyProfile> {
   Map<String, dynamic>? userProfile;
   bool _isLoading = true;
   String _errorMessage = '';
@@ -101,10 +101,10 @@ class _MyProfileState extends State<MyProfile> {
                     SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: _fetchUserProfile,
-                      child: Text('Try Again'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.orange,
                       ),
+                      child: Text('Try Again'),
                     ),
                   ],
                 ),

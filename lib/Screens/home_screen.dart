@@ -3,7 +3,7 @@ import 'package:travel_buddy/Screens/login_screen.dart';
 import 'package:travel_buddy/Screens/signup_screen.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +24,6 @@ class HomeScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Top section with gradient background
                 Container(
                   height:
                       isSmallScreen ? screenHeight * 0.35 : screenHeight * 0.4,
@@ -57,7 +56,7 @@ class HomeScreen extends StatelessWidget {
                         'Your Carpooling Companion',
                         style: TextStyle(
                           fontSize: isSmallScreen ? 14 : 16,
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withAlpha(230),
                         ),
                       ),
                     ],
